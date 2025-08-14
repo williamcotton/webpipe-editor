@@ -28,7 +28,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@monaco-editor/react": "^4.6.0",
-    "webpipe-js": "^0.1.4"
+    "webpipe-js": "^0.1.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { parseProgram, prettyPrint } from 'webpipe-js';
+import { parseProgram, prettyPrint, printConfig, printDescribe } from 'webpipe-js';
 
 interface PipelineStep {
   id: string;
@@ -205,6 +205,7 @@ describe "hello, world"
     return langMap[type] || 'text';
   };
 
+
   const addStep = (type: string) => {
     const operation = availableOperations.find(op => op.type === type);
     if (!operation) return;
@@ -328,7 +329,10 @@ describe "hello, world"
                 {parsedData.configs.map((config: any, index: number) => (
                   <div
                     key={`config-${index}`}
-                    onClick={() => setSelectedElement({ type: 'config', data: config })}
+                    onClick={() => {
+                      setSelectedElement({ type: 'config', data: config });
+                      setViewMode('single');
+                    }}
                     style={{
                       padding: '6px 8px',
                       margin: '2px 0',
@@ -421,6 +425,9 @@ describe "hello, world"
                           };
                         });
                         setPipelineSteps(steps);
+                        setViewMode('all');
+                      } else {
+                        setViewMode('single');
                       }
                     }}
                     style={{
@@ -447,7 +454,10 @@ describe "hello, world"
                 {parsedData.variables.map((variable: any, index: number) => (
                   <div
                     key={`variable-${index}`}
-                    onClick={() => setSelectedElement({ type: 'variable', data: variable })}
+                    onClick={() => {
+                      setSelectedElement({ type: 'variable', data: variable });
+                      setViewMode('single');
+                    }}
                     style={{
                       padding: '6px 8px',
                       margin: '2px 0',
@@ -458,7 +468,7 @@ describe "hello, world"
                       fontSize: '11px'
                     }}
                   >
-                    {variable.type} {variable.name}
+                    {variable.varType} {variable.name}
                   </div>
                 ))}
                 <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
@@ -466,24 +476,27 @@ describe "hello, world"
             )}
 
             {/* Tests */}
-            {parsedData.tests && parsedData.tests.length > 0 && (
+            {parsedData.describes && parsedData.describes.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
                 <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Tests</h3>
-                {parsedData.tests.map((test: any, index: number) => (
+                {parsedData.describes.map((describe: any, index: number) => (
                   <div
                     key={`test-${index}`}
-                    onClick={() => setSelectedElement({ type: 'test', data: test })}
+                    onClick={() => {
+                      setSelectedElement({ type: 'test', data: describe });
+                      setViewMode('single');
+                    }}
                     style={{
                       padding: '6px 8px',
                       margin: '2px 0',
-                      backgroundColor: selectedElement?.type === 'test' && selectedElement?.data === test ? '#0e639c' : '#37373d',
+                      backgroundColor: selectedElement?.type === 'test' && selectedElement?.data === describe ? '#0e639c' : '#37373d',
                       color: '#cccccc',
                       borderRadius: '3px',
                       cursor: 'pointer',
                       fontSize: '11px'
                     }}
                   >
-                    describe "{test.description}"
+                    describe "{describe.name}"
                   </div>
                 ))}
               </div>
@@ -524,7 +537,7 @@ describe "hello, world"
                 wordWrap: 'on'
               }}
             />
-          ) : selectedElement ? (
+          ) : (
             // Show specific editor based on selected element type
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{
@@ -534,14 +547,20 @@ describe "hello, world"
                 fontSize: '12px',
                 color: '#cccccc'
               }}>
-                {selectedElement.type === 'config' && `Config: ${selectedElement.data.name}`}
-                {selectedElement.type === 'route' && `Route: ${selectedElement.data.method} ${selectedElement.data.path}`}
-                {selectedElement.type === 'pipeline' && `Pipeline: ${selectedElement.data.name}`}
-                {selectedElement.type === 'variable' && `Variable: ${selectedElement.data.type} ${selectedElement.data.name}`}
-                {selectedElement.type === 'test' && `Test: ${selectedElement.data.description}`}
+                {selectedElement ? (
+                  <>
+                    {selectedElement.type === 'config' && `Config: ${selectedElement.data.name}`}
+                    {selectedElement.type === 'route' && `Route: ${selectedElement.data.method} ${selectedElement.data.path}`}
+                    {selectedElement.type === 'pipeline' && `Pipeline: ${selectedElement.data.name}`}
+                    {selectedElement.type === 'variable' && `Variable: ${selectedElement.data.varType} ${selectedElement.data.name}`}
+                    {selectedElement.type === 'test' && `Test: ${selectedElement.data.name}`}
+                  </>
+                ) : (
+                  'Select an element from the sidebar to edit'
+                )}
               </div>
               
-              {(selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
+              {selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
                 // Pipeline view for routes and pipelines
                 <div style={{ 
                   display: 'flex', 
@@ -613,25 +632,29 @@ describe "hello, world"
                 <Editor
                   height="100%"
                   language={
-                    selectedElement.type === 'config' ? 'yaml' :
-                    selectedElement.type === 'variable' ? getLanguageForType(selectedElement.data.type) :
-                    selectedElement.type === 'test' ? 'yaml' :
-                    selectedElement.type === 'route' ? 'yaml' :
-                    'text'
+                    selectedElement ? (
+                      selectedElement.type === 'config' ? 'text' :
+                      selectedElement.type === 'variable' ? getLanguageForType(selectedElement.data.varType) :
+                      selectedElement.type === 'test' ? 'text' :
+                      selectedElement.type === 'route' ? 'yaml' :
+                      'text'
+                    ) : 'text'
                   }
                   value={
-                    selectedElement.type === 'config' ? JSON.stringify(selectedElement.data.properties, null, 2) :
-                    selectedElement.type === 'variable' ? selectedElement.data.value :
-                    selectedElement.type === 'test' ? selectedElement.data.description :
-                    selectedElement.type === 'route' && pipelineSteps.length > 0 ? pipelineSteps[0]?.code || '' :
-                    'Select an element to edit'
+                    selectedElement ? (
+                      selectedElement.type === 'config' ? printConfig(selectedElement.data) :
+                      selectedElement.type === 'variable' ? selectedElement.data.value :
+                      selectedElement.type === 'test' ? printDescribe(selectedElement.data) :
+                      selectedElement.type === 'route' && pipelineSteps.length > 0 ? pipelineSteps[0]?.code || '' :
+                      'Select an element to edit'
+                    ) : 'Select an element from the sidebar to edit'
                   }
                   onChange={(value) => {
                     // Handle updates to configs, variables, tests
-                    if (selectedElement.type === 'variable') {
+                    if (selectedElement?.type === 'variable') {
                       // Update variable value
                       console.log('Update variable:', value);
-                    } else if (selectedElement.type === 'config') {
+                    } else if (selectedElement?.type === 'config') {
                       // Update config properties
                       console.log('Update config:', value);
                     }
@@ -641,110 +664,10 @@ describe "hello, world"
                     minimap: { enabled: false },
                     fontSize: 14,
                     automaticLayout: true,
-                    readOnly: selectedElement.type === 'test'
+                    readOnly: selectedElement?.type === 'test'
                   }}
                 />
               )}
-            </div>
-          ) : viewMode === 'all' ? (
-            <div style={{ 
-              display: 'flex', 
-              height: '100%',
-              gap: '1px',
-              backgroundColor: '#3e3e42'
-            }}>
-              {pipelineSteps.map((step, index) => (
-                <div key={step.id} style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  backgroundColor: '#1e1e1e',
-                  minWidth: '300px'
-                }}>
-                  {/* Step Header */}
-                  <div style={{
-                    padding: '8px 12px',
-                    backgroundColor: '#2d2d30',
-                    borderBottom: '1px solid #3e3e42',
-                    fontSize: '12px',
-                    color: '#cccccc'
-                  }}>
-                    {step.type} {index > 0 && '← ' + pipelineSteps[index - 1].type}
-                  </div>
-                  
-                  {/* Code Editor */}
-                  <div style={{ flex: 1 }}>
-                    <Editor
-                      height="50%"
-                      language={step.language}
-                      value={step.code}
-                      onChange={(value) => updateStepCode(step.id, value || '')}
-                      theme="vs-dark"
-                      options={{
-                        minimap: { enabled: false },
-                        fontSize: 12,
-                        lineNumbers: 'off',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true
-                      }}
-                    />
-                    
-                    {/* Output */}
-                    <div style={{
-                      height: '50%',
-                      backgroundColor: '#0e0e0e',
-                      border: '1px solid #3e3e42',
-                      borderTop: 'none'
-                    }}>
-                      <Editor
-                        height="100%"
-                        language="json"
-                        value={step.output || '// Output will appear here'}
-                        theme="vs-dark"
-                        options={{
-                          readOnly: true,
-                          minimap: { enabled: false },
-                          fontSize: 11,
-                          lineNumbers: 'off',
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Single view mode
-            <div style={{ height: '100%', display: 'flex' }}>
-              <div style={{ flex: 1 }}>
-                {pipelineSteps.length > 0 && (
-                  <>
-                    <div style={{
-                      padding: '8px 12px',
-                      backgroundColor: '#2d2d30',
-                      borderBottom: '1px solid #3e3e42',
-                      fontSize: '12px',
-                      color: '#cccccc'
-                    }}>
-                      {pipelineSteps.find(s => s.id === selectedStep)?.type || pipelineSteps[0].type}
-                    </div>
-                    <Editor
-                      height="100%"
-                      language={pipelineSteps.find(s => s.id === selectedStep)?.language || 'json'}
-                      value={pipelineSteps.find(s => s.id === selectedStep)?.code || pipelineSteps[0].code}
-                      onChange={(value) => updateStepCode(selectedStep || pipelineSteps[0].id, value || '')}
-                      theme="vs-dark"
-                      options={{
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        automaticLayout: true
-                      }}
-                    />
-                  </>
-                )}
-              </div>
             </div>
           )}
         </div>
