@@ -79,7 +79,7 @@ describe "hello, world"
   
   const availableOperations = [
     { type: 'curl', label: 'curl', language: 'shell' },
-    { type: 'jq', label: 'jq', language: 'json' },
+    { type: 'jq', label: 'jq', language: 'text' },
     { type: 'lua', label: 'lua', language: 'lua' },
     { type: 'handlebars', label: 'handlebars', language: 'handlebars' },
     { type: 'pg', label: 'pg', language: 'sql' },
@@ -136,11 +136,20 @@ describe "hello, world"
   // Update webpipe source when pipeline steps change
   const updateWebpipeSource = () => {
     try {
-      if (parsedData && selectedElement?.type === 'route') {
+      console.log('updateWebpipeSource called');
+      console.log('parsedData:', parsedData);
+      console.log('selectedElement:', selectedElement);
+      console.log('pipelineSteps:', pipelineSteps);
+      
+      if (parsedData && selectedElement?.type === 'route' && pipelineSteps.length > 0) {
         const updatedData = {
           ...parsedData,
           routes: parsedData.routes.map((route: any) => {
-            if (route === selectedElement.data) {
+            // Use method and path to match instead of object reference
+            if (route.method === selectedElement.data.method && route.path === selectedElement.data.path) {
+              console.log('Updating route:', route.method, route.path);
+              console.log('New steps:', pipelineSteps);
+              
               return {
                 ...route,
                 pipeline: {
@@ -159,8 +168,22 @@ describe "hello, world"
           })
         };
         
+        console.log('Updated data:', updatedData);
         const formatted = prettyPrint(updatedData);
-        if (formatted) setWebpipeSource(formatted);
+        console.log('Formatted result:', formatted);
+        
+        if (formatted) {
+          setWebpipeSource(formatted);
+          console.log('Source updated successfully');
+        } else {
+          console.error('prettyPrint returned empty result');
+        }
+      } else {
+        console.log('Conditions not met for update:', {
+          hasParsedData: !!parsedData,
+          isRoute: selectedElement?.type === 'route',
+          hasSteps: pipelineSteps.length > 0
+        });
       }
     } catch (error) {
       console.error('Failed to update webpipe source:', error);
@@ -169,7 +192,7 @@ describe "hello, world"
 
   const getLanguageForType = (type: string): string => {
     const langMap: { [key: string]: string } = {
-      'jq': 'json',
+      'jq': 'text', // Monaco doesn't have jq highlighting, use plain text to avoid errors
       'lua': 'lua',
       'handlebars': 'handlebars',
       'pg': 'sql',
@@ -197,8 +220,7 @@ describe "hello, world"
     const newSteps = [...pipelineSteps, newStep];
     setPipelineSteps(newSteps);
     
-    // Update webpipe source after a short delay to allow state to settle
-    setTimeout(() => updateWebpipeSource(), 100);
+    // Don't automatically update source - only when user switches to source view
   };
 
   const getDefaultCode = (type: string): string => {
@@ -225,8 +247,7 @@ describe "hello, world"
       )
     );
     
-    // Update webpipe source after a short delay to allow state to settle
-    setTimeout(() => updateWebpipeSource(), 500);
+    // Don't automatically update source - only when user switches to source view
   };
 
   return (
@@ -247,7 +268,11 @@ describe "hello, world"
       }}>
         <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button
-            onClick={() => setViewMode('source')}
+            onClick={() => {
+              // Update webpipe source from current pipeline steps before switching to source view
+              updateWebpipeSource();
+              setViewMode('source');
+            }}
             style={{
               padding: '8px 12px',
               backgroundColor: viewMode === 'source' ? '#0e639c' : '#37373d',
