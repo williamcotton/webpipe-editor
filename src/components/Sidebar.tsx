@@ -20,9 +20,6 @@ interface SidebarProps {
   deleteSpecificElement: (elementType: string, elementData: any) => void;
   serverBaseUrl: string;
   setServerBaseUrl: (url: string) => void;
-  routeTestInputs: Record<string, string>;
-  setRouteTestInput: (routeKey: string, value: string) => void;
-  testRouteGet: (route: any, overridePathOrUrl?: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -42,9 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   deleteSpecificElement
   , serverBaseUrl
   , setServerBaseUrl
-  , routeTestInputs
-  , setRouteTestInput
-  , testRouteGet
 }) => {
   return (
     <div style={{
@@ -93,10 +87,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         createNewPipeline={createNewPipeline}
         createNewConfig={createNewConfig}
         deleteSpecificElement={deleteSpecificElement}
-        serverBaseUrl={serverBaseUrl}
-        routeTestInputs={routeTestInputs}
-        setRouteTestInput={setRouteTestInput}
-        testRouteGet={testRouteGet}
       />
     </div>
   );

@@ -62,9 +62,6 @@ function App() {
         deleteSpecificElement={deleteSpecificElement}
         serverBaseUrl={serverBaseUrl}
         setServerBaseUrl={setServerBaseUrl}
-        routeTestInputs={routeTestInputs}
-        setRouteTestInput={setRouteTestInput}
-        testRouteGet={testRouteGet}
       />
 
       {/* Main Editor Area */}
@@ -76,6 +73,10 @@ function App() {
           onDelete={deleteElement}
           currentFilePath={currentFilePath}
           isModified={isModified}
+          serverBaseUrl={serverBaseUrl}
+          routeTestInputs={routeTestInputs}
+          setRouteTestInput={setRouteTestInput}
+          testRouteGet={testRouteGet}
         />
 
         {/* Main Content Area */}

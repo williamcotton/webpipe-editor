@@ -7,6 +7,10 @@ interface EditableHeaderProps {
   onDelete: () => void;
   currentFilePath: string | null;
   isModified: boolean;
+  serverBaseUrl: string;
+  routeTestInputs: Record<string, string>;
+  setRouteTestInput: (routeKey: string, value: string) => void;
+  testRouteGet: (route: any, overridePathOrUrl?: string) => void;
 }
 
 export const EditableHeader: React.FC<EditableHeaderProps> = ({
@@ -14,7 +18,11 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
   onNameChange,
   onDelete,
   currentFilePath,
-  isModified
+  isModified,
+  serverBaseUrl,
+  routeTestInputs,
+  setRouteTestInput,
+  testRouteGet
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -176,6 +184,41 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
             {suffix}
           </span>
         </div>
+        {selectedElement?.type === 'route' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder={selectedElement.data.path}
+              value={routeTestInputs[`${selectedElement.data.method} ${selectedElement.data.path}`] || ''}
+              onChange={(e) => setRouteTestInput(`${selectedElement.data.method} ${selectedElement.data.path}`, e.target.value)}
+              title={serverBaseUrl ? `${serverBaseUrl}${selectedElement.data.path}` : 'Enter full URL or path'}
+              style={{
+                minWidth: '160px',
+                backgroundColor: '#1e1e1e',
+                border: '1px solid #3e3e42',
+                borderRadius: '3px',
+                color: '#cccccc',
+                fontSize: '12px',
+                padding: '4px 6px'
+              }}
+            />
+            <button
+              onClick={() => testRouteGet(selectedElement.data)}
+              title="GET route"
+              style={{
+                backgroundColor: '#0e639c',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '6px 10px',
+                borderRadius: '3px',
+                fontSize: '12px'
+              }}
+            >
+              GET
+            </button>
+          </div>
+        )}
         <button
           onClick={onDelete}
           style={{
