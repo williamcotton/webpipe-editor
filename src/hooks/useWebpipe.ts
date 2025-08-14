@@ -84,8 +84,8 @@ describe "hello, world"
           
           let steps: PipelineStep[] = [];
           // Handle the actual webpipe-js structure: route.pipeline.pipeline.steps
-          if (firstRoute.pipeline?.pipeline?.steps) {
-            steps = firstRoute.pipeline.pipeline.steps.map((step: any, index: number) => {
+          if ((firstRoute.pipeline as any)?.pipeline?.steps) {
+            steps = (firstRoute.pipeline as any).pipeline.steps.map((step: any, index: number) => {
               const stepType = step.name; // webpipe-js uses 'name' for the step type
               const stepCode = step.config; // webpipe-js uses 'config' for the step code
               
@@ -192,6 +192,310 @@ describe "hello, world"
     );
   };
 
+  const createNewRoute = () => {
+    const newRoute = {
+      method: 'GET',
+      path: '/new-route',
+      pipeline: {
+        kind: 'Inline',
+        pipeline: {
+          steps: [
+            {
+              kind: 'Regular',
+              name: 'jq',
+              config: '{ message: "Hello from new route" }'
+            }
+          ]
+        }
+      }
+    };
+
+    if (parsedData) {
+      const updatedData = {
+        ...parsedData,
+        routes: [...(parsedData.routes || []), newRoute]
+      };
+      setParsedData(updatedData);
+      const formatted = prettyPrint(updatedData);
+      if (formatted) setWebpipeSource(formatted);
+    }
+  };
+
+  const createNewTest = () => {
+    const newTest = {
+      name: 'new test',
+      mocks: [],
+      tests: [
+        {
+          name: 'should work',
+          mocks: [],
+          when: {
+            kind: 'CallingRoute',
+            method: 'GET',
+            path: '/new-route'
+          },
+          input: null,
+          conditions: [
+            {
+              field: 'status',
+              comparison: 'equals',
+              value: '200',
+              conditionType: 'then'
+            }
+          ]
+        }
+      ]
+    };
+
+    if (parsedData) {
+      const updatedData = {
+        ...parsedData,
+        describes: [...(parsedData.describes || []), newTest]
+      };
+      setParsedData(updatedData);
+      const formatted = prettyPrint(updatedData);
+      if (formatted) setWebpipeSource(formatted);
+    }
+  };
+
+  const createNewVariable = () => {
+    const newVariable = {
+      varType: 'jq',
+      name: 'newVariable',
+      value: '{ message: "Hello from variable" }'
+    };
+
+    if (parsedData) {
+      const updatedData = {
+        ...parsedData,
+        variables: [...(parsedData.variables || []), newVariable]
+      };
+      setParsedData(updatedData);
+      const formatted = prettyPrint(updatedData);
+      if (formatted) setWebpipeSource(formatted);
+    }
+  };
+
+  const createNewPipeline = () => {
+    const newPipeline = {
+      name: 'newPipeline',
+      pipeline: {
+        steps: [
+          {
+            kind: 'Regular',
+            name: 'jq',
+            config: '{ message: "Hello from pipeline" }'
+          }
+        ]
+      }
+    };
+
+    if (parsedData) {
+      const updatedData = {
+        ...parsedData,
+        pipelines: [...(parsedData.pipelines || []), newPipeline]
+      };
+      setParsedData(updatedData);
+      const formatted = prettyPrint(updatedData);
+      if (formatted) setWebpipeSource(formatted);
+    }
+  };
+
+  const createNewConfig = () => {
+    const newConfig = {
+      name: 'newConfig',
+      properties: [
+        {
+          key: 'enabled',
+          value: {
+            kind: 'Boolean',
+            value: true
+          }
+        }
+      ]
+    };
+
+    if (parsedData) {
+      const updatedData = {
+        ...parsedData,
+        configs: [...(parsedData.configs || []), newConfig]
+      };
+      setParsedData(updatedData);
+      const formatted = prettyPrint(updatedData);
+      if (formatted) setWebpipeSource(formatted);
+    }
+  };
+
+  const updateElementName = (newName: string) => {
+    if (!selectedElement || !parsedData) return;
+
+    let updatedData = { ...parsedData };
+    let updatedSelectedElement = { ...selectedElement };
+
+    switch (selectedElement.type) {
+      case 'route':
+        // For routes, parse method and path from the new name
+        const routeParts = newName.split(' ');
+        if (routeParts.length >= 2) {
+          const method = routeParts[0];
+          const path = routeParts.slice(1).join(' ');
+          updatedData.routes = parsedData.routes.map((route: any) => {
+            if (route.method === selectedElement.data.method && route.path === selectedElement.data.path) {
+              const updatedRoute = { ...route, method, path };
+              updatedSelectedElement.data = updatedRoute;
+              return updatedRoute;
+            }
+            return route;
+          });
+        }
+        break;
+        
+      case 'test':
+        updatedData.describes = parsedData.describes.map((test: any) => {
+          if (test.name === selectedElement.data.name) {
+            const updatedTest = { ...test, name: newName };
+            updatedSelectedElement.data = updatedTest;
+            return updatedTest;
+          }
+          return test;
+        });
+        break;
+        
+      case 'variable':
+        updatedData.variables = parsedData.variables.map((variable: any) => {
+          if (variable.name === selectedElement.data.name) {
+            const updatedVariable = { ...variable, name: newName };
+            updatedSelectedElement.data = updatedVariable;
+            return updatedVariable;
+          }
+          return variable;
+        });
+        break;
+        
+      case 'pipeline':
+        updatedData.pipelines = parsedData.pipelines.map((pipeline: any) => {
+          if (pipeline.name === selectedElement.data.name) {
+            const updatedPipeline = { ...pipeline, name: newName };
+            updatedSelectedElement.data = updatedPipeline;
+            return updatedPipeline;
+          }
+          return pipeline;
+        });
+        break;
+        
+      case 'config':
+        updatedData.configs = parsedData.configs.map((config: any) => {
+          if (config.name === selectedElement.data.name) {
+            const updatedConfig = { ...config, name: newName };
+            updatedSelectedElement.data = updatedConfig;
+            return updatedConfig;
+          }
+          return config;
+        });
+        break;
+    }
+
+    setParsedData(updatedData);
+    setSelectedElement(updatedSelectedElement);
+    const formatted = prettyPrint(updatedData);
+    if (formatted) setWebpipeSource(formatted);
+  };
+
+  const deleteElement = () => {
+    if (!selectedElement || !parsedData) return;
+
+    let updatedData = { ...parsedData };
+
+    switch (selectedElement.type) {
+      case 'route':
+        updatedData.routes = parsedData.routes.filter((route: any) => 
+          !(route.method === selectedElement.data.method && route.path === selectedElement.data.path)
+        );
+        break;
+        
+      case 'test':
+        updatedData.describes = parsedData.describes.filter((test: any) => 
+          test.name !== selectedElement.data.name
+        );
+        break;
+        
+      case 'variable':
+        updatedData.variables = parsedData.variables.filter((variable: any) => 
+          variable.name !== selectedElement.data.name
+        );
+        break;
+        
+      case 'pipeline':
+        updatedData.pipelines = parsedData.pipelines.filter((pipeline: any) => 
+          pipeline.name !== selectedElement.data.name
+        );
+        break;
+        
+      case 'config':
+        updatedData.configs = parsedData.configs.filter((config: any) => 
+          config.name !== selectedElement.data.name
+        );
+        break;
+    }
+
+    setParsedData(updatedData);
+    setSelectedElement(null); // Clear selection after delete
+    setViewMode('source'); // Return to source view
+    const formatted = prettyPrint(updatedData);
+    if (formatted) setWebpipeSource(formatted);
+  };
+
+  const deleteSpecificElement = (elementType: string, elementData: any) => {
+    if (!parsedData) return;
+
+    let updatedData = { ...parsedData };
+
+    switch (elementType) {
+      case 'route':
+        updatedData.routes = parsedData.routes.filter((route: any) => 
+          !(route.method === elementData.method && route.path === elementData.path)
+        );
+        break;
+        
+      case 'test':
+        updatedData.describes = parsedData.describes.filter((test: any) => 
+          test.name !== elementData.name
+        );
+        break;
+        
+      case 'variable':
+        updatedData.variables = parsedData.variables.filter((variable: any) => 
+          variable.name !== elementData.name
+        );
+        break;
+        
+      case 'pipeline':
+        updatedData.pipelines = parsedData.pipelines.filter((pipeline: any) => 
+          pipeline.name !== elementData.name
+        );
+        break;
+        
+      case 'config':
+        updatedData.configs = parsedData.configs.filter((config: any) => 
+          config.name !== elementData.name
+        );
+        break;
+    }
+
+    // Clear selection if we deleted the currently selected element
+    if (selectedElement && 
+        selectedElement.type === elementType && 
+        ((elementType === 'route' && selectedElement.data.method === elementData.method && selectedElement.data.path === elementData.path) ||
+         (elementType !== 'route' && selectedElement.data.name === elementData.name))) {
+      setSelectedElement(null);
+      setViewMode('source');
+    }
+
+    setParsedData(updatedData);
+    const formatted = prettyPrint(updatedData);
+    if (formatted) setWebpipeSource(formatted);
+  };
+
   return {
     webpipeSource,
     setWebpipeSource,
@@ -208,6 +512,14 @@ describe "hello, world"
     parsedData,
     updateWebpipeSource,
     addStep,
-    updateStepCode
+    updateStepCode,
+    createNewRoute,
+    createNewTest,
+    createNewVariable,
+    createNewPipeline,
+    createNewConfig,
+    updateElementName,
+    deleteElement,
+    deleteSpecificElement
   };
 };

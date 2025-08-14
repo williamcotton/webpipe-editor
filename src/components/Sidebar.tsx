@@ -12,6 +12,12 @@ interface SidebarProps {
   setSelectedElement: (element: SelectedElement) => void;
   setPipelineSteps: (steps: PipelineStep[]) => void;
   setSelectedRoute: (route: string) => void;
+  createNewRoute: () => void;
+  createNewTest: () => void;
+  createNewVariable: () => void;
+  createNewPipeline: () => void;
+  createNewConfig: () => void;
+  deleteSpecificElement: (elementType: string, elementData: any) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -22,7 +28,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedElement,
   setSelectedElement,
   setPipelineSteps,
-  setSelectedRoute
+  setSelectedRoute,
+  createNewRoute,
+  createNewTest,
+  createNewVariable,
+  createNewPipeline,
+  createNewConfig,
+  deleteSpecificElement
 }) => {
   return (
     <div style={{
@@ -45,6 +57,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         setViewMode={setViewMode}
         setPipelineSteps={setPipelineSteps}
         setSelectedRoute={setSelectedRoute}
+        createNewRoute={createNewRoute}
+        createNewTest={createNewTest}
+        createNewVariable={createNewVariable}
+        createNewPipeline={createNewPipeline}
+        createNewConfig={createNewConfig}
+        deleteSpecificElement={deleteSpecificElement}
       />
     </div>
   );

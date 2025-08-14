@@ -2,6 +2,7 @@ import React from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainEditor } from './components/MainEditor';
 import { OutputPanel } from './components/OutputPanel';
+import { EditableHeader } from './components/EditableHeader';
 import { useWebpipe } from './hooks/useWebpipe';
 
 function App() {
@@ -18,7 +19,15 @@ function App() {
     setViewMode,
     parsedData,
     updateWebpipeSource,
-    updateStepCode
+    updateStepCode,
+    createNewRoute,
+    createNewTest,
+    createNewVariable,
+    createNewPipeline,
+    createNewConfig,
+    updateElementName,
+    deleteElement,
+    deleteSpecificElement
   } = useWebpipe();
 
   return (
@@ -38,23 +47,22 @@ function App() {
         setSelectedElement={setSelectedElement}
         setPipelineSteps={setPipelineSteps}
         setSelectedRoute={setSelectedRoute}
+        createNewRoute={createNewRoute}
+        createNewTest={createNewTest}
+        createNewVariable={createNewVariable}
+        createNewPipeline={createNewPipeline}
+        createNewConfig={createNewConfig}
+        deleteSpecificElement={deleteSpecificElement}
       />
 
       {/* Main Editor Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: '#2d2d30',
-          borderBottom: '1px solid #3e3e42',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <span style={{ fontSize: '14px', color: '#cccccc' }}>
-            test.wp - WebPipe Editor
-          </span>
-        </div>
+        <EditableHeader
+          selectedElement={selectedElement}
+          onNameChange={updateElementName}
+          onDelete={deleteElement}
+        />
 
         {/* Main Content Area */}
         <div style={{ flex: 1, overflow: 'hidden' }}>
