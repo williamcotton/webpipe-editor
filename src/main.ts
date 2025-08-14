@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
+import { readFile, writeFile } from 'fs/promises';
+import { parseProgram, prettyPrint } from 'webpipe-js';
 
 let counter = 0;
 
@@ -45,4 +47,43 @@ ipcMain.handle('increment-counter', () => {
 
 ipcMain.handle('get-counter', () => {
   return counter;
+});
+
+ipcMain.handle('load-file', async (event, filePath: string) => {
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    return content;
+  } catch (error) {
+    console.error('Failed to load file:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('save-file', async (event, filePath: string, content: string) => {
+  try {
+    await writeFile(filePath, content, 'utf-8');
+  } catch (error) {
+    console.error('Failed to save file:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('parse-webpipe', async (event, source: string) => {
+  try {
+    const parsed = parseProgram(source);
+    return parsed;
+  } catch (error) {
+    console.error('Failed to parse webpipe source:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('format-webpipe', async (event, data: any) => {
+  try {
+    const formatted = prettyPrint(data);
+    return formatted;
+  } catch (error) {
+    console.error('Failed to format webpipe data:', error);
+    throw error;
+  }
 });
