@@ -16,11 +16,12 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
       display: 'flex', 
       height: '100%',
       gap: '1px',
-      backgroundColor: '#3e3e42'
+      backgroundColor: '#3e3e42',
+      overflowX: 'auto'
     }}>
       {pipelineSteps.map((step, index) => (
         <div key={step.id} style={{ 
-          flex: 1, 
+          flex: 1,
           display: 'flex', 
           flexDirection: 'column',
           backgroundColor: '#1e1e1e',

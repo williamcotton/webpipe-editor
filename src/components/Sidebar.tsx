@@ -39,6 +39,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div style={{
       width: '200px',
+      minWidth: '200px',
+      flexShrink: 0,
       backgroundColor: '#252526',
       borderRight: '1px solid #3e3e42',
       padding: '16px',
