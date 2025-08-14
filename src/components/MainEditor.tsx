@@ -54,7 +54,9 @@ export const MainEditor: React.FC<MainEditorProps> = ({
           minimap: { enabled: false },
           fontSize: 14,
           automaticLayout: true,
-          wordWrap: 'on'
+          wordWrap: 'on',
+          fontFamily: 'Liga Menlo, SF Mono, Monaco, Inconsolata, Roboto Mono, Oxygen Mono, Ubuntu Monospace, Source Code Pro, Fira Mono, Droid Sans Mono, Courier New, monospace',
+          fontLigatures: true
         }}
       />
     );

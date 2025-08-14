@@ -71,7 +71,9 @@ export const SingleEditor: React.FC<SingleEditorProps> = ({
         minimap: { enabled: false },
         fontSize: 14,
         automaticLayout: true,
-        readOnly: selectedElement?.type === 'test'
+        readOnly: selectedElement?.type === 'test',
+        fontFamily: 'Liga Menlo, SF Mono, Monaco, Inconsolata, Roboto Mono, Oxygen Mono, Ubuntu Monospace, Source Code Pro, Fira Mono, Droid Sans Mono, Courier New, monospace',
+        fontLigatures: true
       }}
     />
   );

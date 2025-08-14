@@ -48,7 +48,9 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
                 fontSize: 12,
                 lineNumbers: 'off',
                 scrollBeyondLastLine: false,
-                automaticLayout: true
+                automaticLayout: true,
+                fontFamily: 'Liga Menlo, SF Mono, Monaco, Inconsolata, Roboto Mono, Oxygen Mono, Ubuntu Monospace, Source Code Pro, Fira Mono, Droid Sans Mono, Courier New, monospace',
+                fontLigatures: true
               }}
             />
             
@@ -69,7 +71,9 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
                   fontSize: 11,
                   lineNumbers: 'off',
                   scrollBeyondLastLine: false,
-                  automaticLayout: true
+                  automaticLayout: true,
+                  fontFamily: 'Liga Menlo, SF Mono, Monaco, Inconsolata, Roboto Mono, Oxygen Mono, Ubuntu Monospace, Source Code Pro, Fira Mono, Droid Sans Mono, Courier New, monospace',
+                  fontLigatures: true
                 }}
               />
             </div>

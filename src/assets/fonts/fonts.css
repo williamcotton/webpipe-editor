@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Liga Menlo';
+  src: url('./LigaMenlo-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Monaco Editor font override */
+.monaco-editor {
+  font-family: 'Liga Menlo', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace !important;
+}
+
+.monaco-editor .view-lines {
+  font-family: 'Liga Menlo', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace !important;
+}
