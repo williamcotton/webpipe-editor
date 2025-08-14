@@ -1,0 +1,43 @@
+{
+  "name": "webpipe-editor",
+  "version": "0.1.0",
+  "description": "GUI editor for Web Pipe",
+  "keywords": [
+    "webpipe",
+    "language",
+    "editor",
+    "gui"
+  ],
+  "license": "ISC",
+  "author": "William Cotton",
+  "main": "dist/main.js",
+  "homepage": "./",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
+    "dev:react": "vite",
+    "dev:electron": "npm run build:electron-dev && wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "start": "npm run build:electron-dev && electron .",
+    "start:web": "vite",
+    "build": "npm run build:electron && vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron-dev": "tsc -p tsconfig.electron.json",
+    "build:app": "npm run build && electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^29.1.4",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "wait-on": "^7.2.0"
+  }
+}
