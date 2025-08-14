@@ -88,8 +88,8 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
   };
   return (
     <div style={{
-      width: '300px',
-      minWidth: '300px',
+      width: '420px',
+      minWidth: '420px',
       flexShrink: 0,
       backgroundColor: '#252526',
       borderLeft: '1px solid #3e3e42',
