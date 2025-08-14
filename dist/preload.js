@@ -7,5 +7,18 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     loadFile: (filePath) => electron_1.ipcRenderer.invoke('load-file', filePath),
     saveFile: (filePath, content) => electron_1.ipcRenderer.invoke('save-file', filePath, content),
     parseWebpipe: (source) => electron_1.ipcRenderer.invoke('parse-webpipe', source),
-    formatWebpipe: (data) => electron_1.ipcRenderer.invoke('format-webpipe', data)
+    formatWebpipe: (data) => electron_1.ipcRenderer.invoke('format-webpipe', data),
+    // File dialog operations
+    showSaveDialog: (defaultPath) => electron_1.ipcRenderer.invoke('show-save-dialog', defaultPath),
+    saveFileToPath: (filePath, content) => electron_1.ipcRenderer.invoke('save-file-to-path', filePath, content),
+    getCurrentFilePath: () => electron_1.ipcRenderer.invoke('get-current-file-path'),
+    setWindowTitle: (title) => electron_1.ipcRenderer.invoke('set-window-title', title),
+    // Menu event listeners
+    onFileNew: (callback) => electron_1.ipcRenderer.on('file-new', callback),
+    onFileOpened: (callback) => electron_1.ipcRenderer.on('file-opened', (event, data) => callback(data)),
+    onFileSave: (callback) => electron_1.ipcRenderer.on('file-save', callback),
+    onFileSaveAs: (callback) => electron_1.ipcRenderer.on('file-save-as', callback),
+    onFileClose: (callback) => electron_1.ipcRenderer.on('file-close', callback),
+    // Remove event listeners
+    removeAllListeners: (channel) => electron_1.ipcRenderer.removeAllListeners(channel)
 });

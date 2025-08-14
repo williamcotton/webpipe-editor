@@ -9,6 +9,8 @@ function App() {
   const {
     webpipeSource,
     setWebpipeSource,
+    currentFilePath,
+    isModified,
     pipelineSteps,
     setPipelineSteps,
     selectedRoute,
@@ -62,6 +64,8 @@ function App() {
           selectedElement={selectedElement}
           onNameChange={updateElementName}
           onDelete={deleteElement}
+          currentFilePath={currentFilePath}
+          isModified={isModified}
         />
 
         {/* Main Content Area */}

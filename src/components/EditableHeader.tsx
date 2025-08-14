@@ -5,12 +5,16 @@ interface EditableHeaderProps {
   selectedElement: SelectedElement | null;
   onNameChange: (newName: string) => void;
   onDelete: () => void;
+  currentFilePath: string | null;
+  isModified: boolean;
 }
 
 export const EditableHeader: React.FC<EditableHeaderProps> = ({
   selectedElement,
   onNameChange,
-  onDelete
+  onDelete,
+  currentFilePath,
+  isModified
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -117,7 +121,10 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
       gap: '12px'
     }}>
       <span style={{ fontSize: '14px', color: '#888' }}>
-        test.wp - WebPipe Editor
+        {currentFilePath ? 
+          `${currentFilePath.split('/').pop()}${isModified ? ' •' : ''} - WebPipe Editor` : 
+          `Untitled${isModified ? ' •' : ''} - WebPipe Editor`
+        }
       </span>
       <span style={{ color: '#3e3e42' }}>|</span>
       <div style={{ display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>

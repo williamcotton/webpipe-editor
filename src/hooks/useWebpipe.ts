@@ -30,6 +30,8 @@ const DEFAULT_CONTENT = [
 
 export const useWebpipe = () => {
   const [webpipeSource, setWebpipeSource] = useState<string>('');
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [isModified, setIsModified] = useState<boolean>(false);
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>('');
   const [selectedStep, setSelectedStep] = useState<string>('');
@@ -496,9 +498,94 @@ describe "hello, world"
     if (formatted) setWebpipeSource(formatted);
   };
 
+  // File operations
+  const handleNewFile = () => {
+    setWebpipeSource(DEFAULT_CONTENT);
+    setCurrentFilePath(null);
+    setIsModified(false);
+    setSelectedElement(null);
+    setViewMode('source');
+    if (window.electronAPI) {
+      window.electronAPI.setWindowTitle('WebPipe Editor - Untitled');
+    }
+  };
+
+  const handleFileOpened = (data: { filePath: string; content: string }) => {
+    setWebpipeSource(data.content);
+    setCurrentFilePath(data.filePath);
+    setIsModified(false);
+    setSelectedElement(null);
+    setViewMode('source');
+  };
+
+  const handleSave = async () => {
+    if (!window.electronAPI) return;
+
+    if (currentFilePath) {
+      // Save to existing file
+      const success = await window.electronAPI.saveFileToPath(currentFilePath, webpipeSource);
+      if (success) {
+        setIsModified(false);
+      }
+    } else {
+      // No current file, trigger Save As
+      handleSaveAs();
+    }
+  };
+
+  const handleSaveAs = async () => {
+    if (!window.electronAPI) return;
+
+    const filePath = await window.electronAPI.showSaveDialog(currentFilePath || 'untitled.wp');
+    if (filePath) {
+      const success = await window.electronAPI.saveFileToPath(filePath, webpipeSource);
+      if (success) {
+        setCurrentFilePath(filePath);
+        setIsModified(false);
+      }
+    }
+  };
+
+  const handleClose = () => {
+    if (isModified) {
+      // TODO: Show unsaved changes dialog
+      console.warn('File has unsaved changes');
+    }
+    handleNewFile();
+  };
+
+  // Set up menu event listeners
+  useEffect(() => {
+    if (!window.electronAPI) return;
+
+    window.electronAPI.onFileNew(handleNewFile);
+    window.electronAPI.onFileOpened(handleFileOpened);
+    window.electronAPI.onFileSave(handleSave);
+    window.electronAPI.onFileSaveAs(handleSaveAs);
+    window.electronAPI.onFileClose(handleClose);
+
+    return () => {
+      window.electronAPI.removeAllListeners('file-new');
+      window.electronAPI.removeAllListeners('file-opened');
+      window.electronAPI.removeAllListeners('file-save');
+      window.electronAPI.removeAllListeners('file-save-as');
+      window.electronAPI.removeAllListeners('file-close');
+    };
+  }, [currentFilePath, isModified, webpipeSource]);
+
+  // Track modifications
+  const setWebpipeSourceWithModified = (source: string) => {
+    setWebpipeSource(source);
+    if (currentFilePath) {
+      setIsModified(true);
+    }
+  };
+
   return {
     webpipeSource,
-    setWebpipeSource,
+    setWebpipeSource: setWebpipeSourceWithModified,
+    currentFilePath,
+    isModified,
     pipelineSteps,
     setPipelineSteps,
     selectedRoute,

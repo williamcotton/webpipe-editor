@@ -33,7 +33,7 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
             fontSize: '12px',
             color: '#cccccc'
           }}>
-            {step.type} {index > 0 && '← ' + pipelineSteps[index - 1].type}
+            {step.type}
           </div>
           
           <div style={{ flex: 1 }}>
