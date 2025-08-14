@@ -185,7 +185,7 @@ ipcMain.handle('get-counter', () => {
   return counter;
 });
 
-ipcMain.handle('load-file', async (event, filePath: string) => {
+ipcMain.handle('load-file', async (_event, filePath: string) => {
   try {
     const content = await readFile(filePath, 'utf-8');
     return content;
@@ -195,7 +195,7 @@ ipcMain.handle('load-file', async (event, filePath: string) => {
   }
 });
 
-ipcMain.handle('save-file', async (event, filePath: string, content: string) => {
+ipcMain.handle('save-file', async (_event, filePath: string, content: string) => {
   try {
     await writeFile(filePath, content, 'utf-8');
   } catch (error) {
@@ -204,7 +204,7 @@ ipcMain.handle('save-file', async (event, filePath: string, content: string) => 
   }
 });
 
-ipcMain.handle('parse-webpipe', async (event, source: string) => {
+ipcMain.handle('parse-webpipe', async (_event, source: string) => {
   try {
     const parsed = parseProgram(source);
     return parsed;
@@ -214,7 +214,7 @@ ipcMain.handle('parse-webpipe', async (event, source: string) => {
   }
 });
 
-ipcMain.handle('format-webpipe', async (event, data: any) => {
+ipcMain.handle('format-webpipe', async (_event, data: any) => {
   try {
     const formatted = prettyPrint(data);
     return formatted;
@@ -225,7 +225,7 @@ ipcMain.handle('format-webpipe', async (event, data: any) => {
 });
 
 // File dialog handlers
-ipcMain.handle('show-save-dialog', async (event, defaultPath?: string) => {
+ipcMain.handle('show-save-dialog', async (_event, defaultPath?: string) => {
   if (!mainWindow) return null;
   
   const result = await dialog.showSaveDialog(mainWindow, {
@@ -240,7 +240,7 @@ ipcMain.handle('show-save-dialog', async (event, defaultPath?: string) => {
   return result.canceled ? null : result.filePath;
 });
 
-ipcMain.handle('save-file-to-path', async (event, filePath: string, content: string) => {
+ipcMain.handle('save-file-to-path', async (_event, filePath: string, content: string) => {
   try {
     await writeFile(filePath, content, 'utf-8');
     currentFilePath = filePath;
@@ -257,6 +257,33 @@ ipcMain.handle('get-current-file-path', () => {
   return currentFilePath;
 });
 
-ipcMain.handle('set-window-title', (event, title: string) => {
+ipcMain.handle('set-window-title', (_event, title: string) => {
   mainWindow?.setTitle(title);
+});
+
+// Simple HTTP GET proxy to avoid renderer CORS issues
+ipcMain.handle('http-get', async (_event, url: string) => {
+  try {
+    const response = await fetch(url);
+    const textBody = await response.text();
+    let parsedBody: any = textBody;
+    try {
+      parsedBody = JSON.parse(textBody);
+    } catch (_) {
+      // non-JSON body, keep as text
+    }
+    const headersObj = Object.fromEntries(response.headers.entries());
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      headers: headersObj,
+      body: parsedBody
+    };
+  } catch (error: any) {
+    return {
+      ok: false,
+      error: String(error)
+    };
+  }
 });

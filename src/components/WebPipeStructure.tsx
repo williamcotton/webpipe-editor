@@ -16,6 +16,10 @@ interface WebPipeStructureProps {
   createNewPipeline: () => void;
   createNewConfig: () => void;
   deleteSpecificElement: (elementType: string, elementData: any) => void;
+  serverBaseUrl: string;
+  routeTestInputs: Record<string, string>;
+  setRouteTestInput: (routeKey: string, value: string) => void;
+  testRouteGet: (route: any, overridePathOrUrl?: string) => void;
 }
 
 export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
@@ -30,7 +34,11 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
   createNewVariable,
   createNewPipeline,
   createNewConfig,
-  deleteSpecificElement
+  deleteSpecificElement,
+  serverBaseUrl,
+  routeTestInputs,
+  setRouteTestInput,
+  testRouteGet
 }) => {
   const extractPipelineSteps = (pipeline: any, prefix: string): PipelineStep[] => {
     if (!pipeline?.pipeline?.steps) return [];
@@ -160,7 +168,8 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
                 fontSize: '11px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                gap: '6px'
               }}
             >
               <span
@@ -179,6 +188,40 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 {route.method} {route.path}
               </span>
+              <input
+                type="text"
+                placeholder={route.path}
+                value={routeTestInputs[`${route.method} ${route.path}`] || ''}
+                onChange={(e) => setRouteTestInput(`${route.method} ${route.path}`, e.target.value)}
+                title={serverBaseUrl ? `${serverBaseUrl}${route.path}` : 'Enter full URL or path'}
+                style={{
+                  minWidth: '80px',
+                  backgroundColor: '#1e1e1e',
+                  border: '1px solid #3e3e42',
+                  borderRadius: '3px',
+                  color: '#cccccc',
+                  fontSize: '11px',
+                  padding: '2px 4px'
+                }}
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  testRouteGet(route);
+                }}
+                title="GET route"
+                style={{
+                  backgroundColor: '#0e639c',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  padding: '4px 6px',
+                  borderRadius: '3px',
+                  fontSize: '10px'
+                }}
+              >
+                GET
+              </button>
               {selectedElement?.type === 'route' && selectedElement?.data === route && (
                 <button
                   onClick={(e) => {

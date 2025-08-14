@@ -1,4 +1,4 @@
-import React from 'react';
+ 
 import { Sidebar } from './components/Sidebar';
 import { MainEditor } from './components/MainEditor';
 import { OutputPanel } from './components/OutputPanel';
@@ -13,7 +13,6 @@ function App() {
     isModified,
     pipelineSteps,
     setPipelineSteps,
-    selectedRoute,
     setSelectedRoute,
     selectedElement,
     setSelectedElement,
@@ -29,7 +28,13 @@ function App() {
     createNewConfig,
     updateElementName,
     deleteElement,
-    deleteSpecificElement
+    deleteSpecificElement,
+    serverBaseUrl,
+    setServerBaseUrl,
+    routeTestInputs,
+    setRouteTestInput,
+    lastResponse,
+    testRouteGet
   } = useWebpipe();
 
   return (
@@ -55,6 +60,11 @@ function App() {
         createNewPipeline={createNewPipeline}
         createNewConfig={createNewConfig}
         deleteSpecificElement={deleteSpecificElement}
+        serverBaseUrl={serverBaseUrl}
+        setServerBaseUrl={setServerBaseUrl}
+        routeTestInputs={routeTestInputs}
+        setRouteTestInput={setRouteTestInput}
+        testRouteGet={testRouteGet}
       />
 
       {/* Main Editor Area */}
@@ -81,7 +91,7 @@ function App() {
         </div>
       </div>
 
-      <OutputPanel />
+      <OutputPanel lastResponse={lastResponse} />
     </div>
   );
 }

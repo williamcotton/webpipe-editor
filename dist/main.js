@@ -174,7 +174,7 @@ electron_1.ipcMain.handle('increment-counter', () => {
 electron_1.ipcMain.handle('get-counter', () => {
     return counter;
 });
-electron_1.ipcMain.handle('load-file', async (event, filePath) => {
+electron_1.ipcMain.handle('load-file', async (_event, filePath) => {
     try {
         const content = await (0, promises_1.readFile)(filePath, 'utf-8');
         return content;
@@ -184,7 +184,7 @@ electron_1.ipcMain.handle('load-file', async (event, filePath) => {
         throw error;
     }
 });
-electron_1.ipcMain.handle('save-file', async (event, filePath, content) => {
+electron_1.ipcMain.handle('save-file', async (_event, filePath, content) => {
     try {
         await (0, promises_1.writeFile)(filePath, content, 'utf-8');
     }
@@ -193,7 +193,7 @@ electron_1.ipcMain.handle('save-file', async (event, filePath, content) => {
         throw error;
     }
 });
-electron_1.ipcMain.handle('parse-webpipe', async (event, source) => {
+electron_1.ipcMain.handle('parse-webpipe', async (_event, source) => {
     try {
         const parsed = (0, webpipe_js_1.parseProgram)(source);
         return parsed;
@@ -203,7 +203,7 @@ electron_1.ipcMain.handle('parse-webpipe', async (event, source) => {
         throw error;
     }
 });
-electron_1.ipcMain.handle('format-webpipe', async (event, data) => {
+electron_1.ipcMain.handle('format-webpipe', async (_event, data) => {
     try {
         const formatted = (0, webpipe_js_1.prettyPrint)(data);
         return formatted;
@@ -214,7 +214,7 @@ electron_1.ipcMain.handle('format-webpipe', async (event, data) => {
     }
 });
 // File dialog handlers
-electron_1.ipcMain.handle('show-save-dialog', async (event, defaultPath) => {
+electron_1.ipcMain.handle('show-save-dialog', async (_event, defaultPath) => {
     if (!mainWindow)
         return null;
     const result = await electron_1.dialog.showSaveDialog(mainWindow, {
@@ -227,7 +227,7 @@ electron_1.ipcMain.handle('show-save-dialog', async (event, defaultPath) => {
     });
     return result.canceled ? null : result.filePath;
 });
-electron_1.ipcMain.handle('save-file-to-path', async (event, filePath, content) => {
+electron_1.ipcMain.handle('save-file-to-path', async (_event, filePath, content) => {
     try {
         await (0, promises_1.writeFile)(filePath, content, 'utf-8');
         currentFilePath = filePath;
@@ -243,6 +243,34 @@ electron_1.ipcMain.handle('save-file-to-path', async (event, filePath, content) 
 electron_1.ipcMain.handle('get-current-file-path', () => {
     return currentFilePath;
 });
-electron_1.ipcMain.handle('set-window-title', (event, title) => {
+electron_1.ipcMain.handle('set-window-title', (_event, title) => {
     mainWindow?.setTitle(title);
+});
+// Simple HTTP GET proxy to avoid renderer CORS issues
+electron_1.ipcMain.handle('http-get', async (_event, url) => {
+    try {
+        const response = await fetch(url);
+        const textBody = await response.text();
+        let parsedBody = textBody;
+        try {
+            parsedBody = JSON.parse(textBody);
+        }
+        catch (_) {
+            // non-JSON body, keep as text
+        }
+        const headersObj = Object.fromEntries(response.headers.entries());
+        return {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            headers: headersObj,
+            body: parsedBody
+        };
+    }
+    catch (error) {
+        return {
+            ok: false,
+            error: String(error)
+        };
+    }
 });

@@ -13,9 +13,10 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     saveFileToPath: (filePath, content) => electron_1.ipcRenderer.invoke('save-file-to-path', filePath, content),
     getCurrentFilePath: () => electron_1.ipcRenderer.invoke('get-current-file-path'),
     setWindowTitle: (title) => electron_1.ipcRenderer.invoke('set-window-title', title),
+    httpGet: (url) => electron_1.ipcRenderer.invoke('http-get', url),
     // Menu event listeners
     onFileNew: (callback) => electron_1.ipcRenderer.on('file-new', callback),
-    onFileOpened: (callback) => electron_1.ipcRenderer.on('file-opened', (event, data) => callback(data)),
+    onFileOpened: (callback) => electron_1.ipcRenderer.on('file-opened', (_event, data) => callback(data)),
     onFileSave: (callback) => electron_1.ipcRenderer.on('file-save', callback),
     onFileSaveAs: (callback) => electron_1.ipcRenderer.on('file-save-as', callback),
     onFileClose: (callback) => electron_1.ipcRenderer.on('file-close', callback),

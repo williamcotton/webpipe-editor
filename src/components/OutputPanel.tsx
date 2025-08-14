@@ -1,6 +1,17 @@
 import React from 'react';
 
-export const OutputPanel: React.FC = () => {
+interface OutputPanelProps {
+  lastResponse: any;
+}
+
+export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
+  const renderBody = () => {
+    if (!lastResponse) {
+      return `// Output will appear here`;
+    }
+    const { url, ok, status, statusText, headers, body, error } = lastResponse;
+    return JSON.stringify({ url, ok, status, statusText, headers, body, error }, null, 2);
+  };
   return (
     <div style={{
       width: '300px',
@@ -29,12 +40,8 @@ export const OutputPanel: React.FC = () => {
           fontSize: '12px',
           fontFamily: 'monospace'
         }}>
-          {/* Mock output for now */}
-          <pre style={{ margin: 0, color: '#d4d4d4' }}>
-{`{
-  "result": "Pipeline output will appear here",
-  "timestamp": "2025-08-13T19:46:36Z"
-}`}
+          <pre style={{ margin: 0, color: '#d4d4d4', whiteSpace: 'pre-wrap' }}>
+            {renderBody()}
           </pre>
         </div>
       </div>

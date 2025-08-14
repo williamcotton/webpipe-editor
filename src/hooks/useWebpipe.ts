@@ -38,6 +38,9 @@ export const useWebpipe = () => {
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('source');
   const [parsedData, setParsedData] = useState<any>(null);
+  const [serverBaseUrl, setServerBaseUrl] = useState<string>('');
+  const [routeTestInputs, setRouteTestInputs] = useState<Record<string, string>>({});
+  const [lastResponse, setLastResponse] = useState<any>(null);
 
   // Load test.wp file on mount
   useEffect(() => {
@@ -167,6 +170,64 @@ describe "hello, world"
       }
     } catch (error) {
       console.error('Failed to update webpipe source:', error);
+    }
+  };
+
+  const normalizeBaseUrl = (base: string): string => {
+    if (!base) return '';
+    let normalized = base.trim();
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `http://${normalized}`;
+    }
+    // remove trailing slash
+    normalized = normalized.replace(/\/$/, '');
+    return normalized;
+  };
+
+  const buildRouteUrl = (baseUrl: string, routePath: string, override?: string): string | null => {
+    if (override && /^https?:\/\//i.test(override.trim())) {
+      return override.trim();
+    }
+    const base = normalizeBaseUrl(baseUrl || '');
+    if (!base) return null;
+    const path = (override && override.trim()) || routePath || '';
+    const withLeading = path.startsWith('/') ? path : `/${path}`;
+    return `${base}${withLeading}`;
+  };
+
+  const setRouteTestInput = (routeKey: string, value: string) => {
+    setRouteTestInputs(prev => ({ ...prev, [routeKey]: value }));
+  };
+
+  const testRouteGet = async (route: any, overridePathOrUrl?: string) => {
+    try {
+      const routeKey = `${route.method} ${route.path}`;
+      const input = overridePathOrUrl ?? routeTestInputs[routeKey] ?? route.path;
+      const url = buildRouteUrl(serverBaseUrl, route.path, input);
+      if (!url) {
+        setLastResponse({ ok: false, error: 'Base URL is not set' });
+        return;
+      }
+      if (window.electronAPI && window.electronAPI.httpGet) {
+        const res = await window.electronAPI.httpGet(url);
+        setLastResponse({ url, ...res });
+      } else {
+        // Fallback in web dev mode: try fetch directly (may hit CORS)
+        const r = await fetch(url);
+        const text = await r.text();
+        let body: any = text;
+        try { body = JSON.parse(text); } catch {}
+        setLastResponse({
+          url,
+          ok: r.ok,
+          status: r.status,
+          statusText: r.statusText,
+          headers: Object.fromEntries(r.headers.entries()),
+          body
+        });
+      }
+    } catch (error) {
+      setLastResponse({ ok: false, error: String(error) });
     }
   };
 
@@ -607,6 +668,12 @@ describe "hello, world"
     createNewConfig,
     updateElementName,
     deleteElement,
-    deleteSpecificElement
+    deleteSpecificElement,
+    serverBaseUrl,
+    setServerBaseUrl,
+    routeTestInputs,
+    setRouteTestInput,
+    lastResponse,
+    testRouteGet
   };
 };

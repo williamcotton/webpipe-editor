@@ -13,11 +13,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFileToPath: (filePath: string, content: string) => ipcRenderer.invoke('save-file-to-path', filePath, content),
   getCurrentFilePath: () => ipcRenderer.invoke('get-current-file-path'),
   setWindowTitle: (title: string) => ipcRenderer.invoke('set-window-title', title),
+  httpGet: (url: string) => ipcRenderer.invoke('http-get', url),
   
   // Menu event listeners
   onFileNew: (callback: () => void) => ipcRenderer.on('file-new', callback),
   onFileOpened: (callback: (data: { filePath: string; content: string }) => void) => 
-    ipcRenderer.on('file-opened', (event, data) => callback(data)),
+    ipcRenderer.on('file-opened', (_event, data) => callback(data)),
   onFileSave: (callback: () => void) => ipcRenderer.on('file-save', callback),
   onFileSaveAs: (callback: () => void) => ipcRenderer.on('file-save-as', callback),
   onFileClose: (callback: () => void) => ipcRenderer.on('file-close', callback),
@@ -41,6 +42,14 @@ declare global {
       saveFileToPath: (filePath: string, content: string) => Promise<boolean>;
       getCurrentFilePath: () => Promise<string | null>;
       setWindowTitle: (title: string) => Promise<void>;
+      httpGet: (url: string) => Promise<{
+        ok: boolean;
+        status?: number;
+        statusText?: string;
+        headers?: Record<string, string>;
+        body?: any;
+        error?: string;
+      }>;
       
       // Menu event listeners
       onFileNew: (callback: () => void) => void;

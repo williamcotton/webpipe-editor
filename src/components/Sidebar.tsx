@@ -18,6 +18,11 @@ interface SidebarProps {
   createNewPipeline: () => void;
   createNewConfig: () => void;
   deleteSpecificElement: (elementType: string, elementData: any) => void;
+  serverBaseUrl: string;
+  setServerBaseUrl: (url: string) => void;
+  routeTestInputs: Record<string, string>;
+  setRouteTestInput: (routeKey: string, value: string) => void;
+  testRouteGet: (route: any, overridePathOrUrl?: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +40,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   createNewPipeline,
   createNewConfig,
   deleteSpecificElement
+  , serverBaseUrl
+  , setServerBaseUrl
+  , routeTestInputs
+  , setRouteTestInput
+  , testRouteGet
 }) => {
   return (
     <div style={{
@@ -46,6 +56,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       padding: '16px',
       overflowY: 'auto'
     }}>
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', color: '#cccccc', fontSize: '11px', marginBottom: '4px' }}>Server Base URL</label>
+        <input
+          type="text"
+          placeholder="http://localhost:9080"
+          value={serverBaseUrl}
+          onChange={(e) => setServerBaseUrl(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '6px 8px',
+            backgroundColor: '#1e1e1e',
+            border: '1px solid #3e3e42',
+            borderRadius: '3px',
+            color: '#cccccc',
+            fontSize: '12px'
+          }}
+        />
+      </div>
       <ViewModeButtons
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -65,6 +93,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         createNewPipeline={createNewPipeline}
         createNewConfig={createNewConfig}
         deleteSpecificElement={deleteSpecificElement}
+        serverBaseUrl={serverBaseUrl}
+        routeTestInputs={routeTestInputs}
+        setRouteTestInput={setRouteTestInput}
+        testRouteGet={testRouteGet}
       />
     </div>
   );

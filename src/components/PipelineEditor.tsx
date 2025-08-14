@@ -19,7 +19,7 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
       backgroundColor: '#3e3e42',
       overflowX: 'auto'
     }}>
-      {pipelineSteps.map((step, index) => (
+      {pipelineSteps.map((step) => (
         <div key={step.id} style={{ 
           flex: 1,
           display: 'flex', 
