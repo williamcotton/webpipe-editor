@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { parseProgram, prettyPrint } from 'webpipe-js';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
 import { getLanguageForType, getDefaultCode, availableOperations } from '../utils';
+import { WebpipeInstance, buildServerUrlFromInstance } from '../utils/processUtils';
 
 const DEFAULT_CONTENT = [
   '# Test App',
@@ -49,34 +50,9 @@ export const useWebpipe = () => {
     pipelineStepsRef.current = pipelineSteps;
   }, [pipelineSteps]);
 
-  // Load test.wp file on mount
+  // Initialize with empty content
   useEffect(() => {
-    const loadTestFile = async () => {
-      if (window.electronAPI && window.electronAPI.loadFile) {
-        try {
-          const content = await window.electronAPI.loadFile('./test.wp');
-          setWebpipeSource(content);
-        } catch (error) {
-          console.error('Failed to load test.wp:', error);
-          // Fallback content
-          setWebpipeSource(`# Test WebPipe
-
-GET /hello/:world
-  |> jq: \`{ world: .params.world }\`
-  |> handlebars: \`<p>hello, {{world}}</p>\`
-
-describe "hello, world"
-  it "calls the route"
-    when calling GET /hello/world
-    then status is 200
-    and output equals \`<p>hello, world</p>\``);
-        }
-      } else {
-        setWebpipeSource(DEFAULT_CONTENT);
-      }
-    };
-    
-    loadTestFile();
+    setWebpipeSource('');
   }, []);
 
   // Parse webpipe source when it changes
@@ -659,6 +635,31 @@ describe "hello, world"
     setIsModified(true);
   };
 
+  // Handle webpipe instance selection
+  const handleInstanceSelect = (instance: WebpipeInstance) => {
+    const serverUrl = buildServerUrlFromInstance(instance);
+    setServerBaseUrl(serverUrl);
+  };
+
+  // Handle opening file from webpipe instance
+  const handleOpenFile = async (filePath: string) => {
+    if (!window.electronAPI) return;
+    
+    try {
+      const content = await window.electronAPI.loadFile(filePath);
+      setWebpipeSource(content);
+      setCurrentFilePath(filePath);
+      setIsModified(false);
+      setSelectedElement(null);
+      setViewMode('source');
+      if (window.electronAPI) {
+        window.electronAPI.setWindowTitle(`WebPipe Editor - ${filePath}`);
+      }
+    } catch (error) {
+      console.error('Failed to open file:', error);
+    }
+  };
+
   return {
     webpipeSource,
     setWebpipeSource: setWebpipeSourceWithModified,
@@ -691,6 +692,8 @@ describe "hello, world"
     routeTestInputs,
     setRouteTestInput,
     lastResponse,
-    testRouteGet
+    testRouteGet,
+    handleInstanceSelect,
+    handleOpenFile
   };
 };

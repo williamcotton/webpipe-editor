@@ -4,6 +4,9 @@ const electron_1 = require("electron");
 const path_1 = require("path");
 const promises_1 = require("fs/promises");
 const webpipe_js_1 = require("webpipe-js");
+const child_process_1 = require("child_process");
+const util_1 = require("util");
+const execAsync = (0, util_1.promisify)(child_process_1.exec);
 let counter = 0;
 let mainWindow = null;
 let currentFilePath = null;
@@ -272,5 +275,16 @@ electron_1.ipcMain.handle('http-get', async (_event, url) => {
             ok: false,
             error: String(error)
         };
+    }
+});
+// Execute shell command handler
+electron_1.ipcMain.handle('execute-command', async (_event, command) => {
+    try {
+        const { stdout, stderr } = await execAsync(command);
+        return stdout;
+    }
+    catch (error) {
+        console.error('Failed to execute command:', error);
+        throw new Error(`Command failed: ${error.message}`);
     }
 });

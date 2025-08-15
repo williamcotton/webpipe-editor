@@ -1,7 +1,9 @@
 import React from 'react';
 import { ViewModeButtons } from './ViewModeButtons';
 import { WebPipeStructure } from './WebPipeStructure';
+import { WebpipeInstanceDropdown } from './WebpipeInstanceDropdown';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
+import { WebpipeInstance } from '../utils/processUtils';
 
 interface SidebarProps {
   viewMode: ViewMode;
@@ -20,6 +22,8 @@ interface SidebarProps {
   deleteSpecificElement: (elementType: string, elementData: any) => void;
   serverBaseUrl: string;
   setServerBaseUrl: (url: string) => void;
+  onInstanceSelect: (instance: WebpipeInstance) => void;
+  onOpenFile: (filePath: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,9 +40,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   createNewVariable,
   createNewPipeline,
   createNewConfig,
-  deleteSpecificElement
-  , serverBaseUrl
-  , setServerBaseUrl
+  deleteSpecificElement,
+  serverBaseUrl,
+  setServerBaseUrl,
+  onInstanceSelect,
+  onOpenFile
 }) => {
   return (
     <div style={{
@@ -68,6 +74,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }}
         />
       </div>
+      
+      <WebpipeInstanceDropdown
+        onInstanceSelect={onInstanceSelect}
+        onOpenFile={onOpenFile}
+      />
+      
       <ViewModeButtons
         viewMode={viewMode}
         setViewMode={setViewMode}

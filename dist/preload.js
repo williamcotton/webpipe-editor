@@ -14,6 +14,7 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     getCurrentFilePath: () => electron_1.ipcRenderer.invoke('get-current-file-path'),
     setWindowTitle: (title) => electron_1.ipcRenderer.invoke('set-window-title', title),
     httpGet: (url) => electron_1.ipcRenderer.invoke('http-get', url),
+    executeCommand: (command) => electron_1.ipcRenderer.invoke('execute-command', command),
     // Menu event listeners
     onFileNew: (callback) => electron_1.ipcRenderer.on('file-new', callback),
     onFileOpened: (callback) => electron_1.ipcRenderer.on('file-opened', (_event, data) => callback(data)),

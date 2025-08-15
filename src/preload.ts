@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCurrentFilePath: () => ipcRenderer.invoke('get-current-file-path'),
   setWindowTitle: (title: string) => ipcRenderer.invoke('set-window-title', title),
   httpGet: (url: string) => ipcRenderer.invoke('http-get', url),
+  executeCommand: (command: string) => ipcRenderer.invoke('execute-command', command),
   
   // Menu event listeners
   onFileNew: (callback: () => void) => ipcRenderer.on('file-new', callback),
@@ -51,6 +52,7 @@ declare global {
         body?: any;
         error?: string;
       }>;
+      executeCommand: (command: string) => Promise<string>;
       
       // Menu event listeners
       onFileNew: (callback: () => void) => void;

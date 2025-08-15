@@ -2,6 +2,10 @@ import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from 'path';
 import { readFile, writeFile } from 'fs/promises';
 import { parseProgram, prettyPrint } from 'webpipe-js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 let counter = 0;
 let mainWindow: BrowserWindow | null = null;
@@ -285,5 +289,16 @@ ipcMain.handle('http-get', async (_event, url: string) => {
       ok: false,
       error: String(error)
     };
+  }
+});
+
+// Execute shell command handler
+ipcMain.handle('execute-command', async (_event, command: string) => {
+  try {
+    const { stdout, stderr } = await execAsync(command);
+    return stdout;
+  } catch (error: any) {
+    console.error('Failed to execute command:', error);
+    throw new Error(`Command failed: ${error.message}`);
   }
 });

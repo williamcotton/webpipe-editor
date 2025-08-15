@@ -34,7 +34,9 @@ function App() {
     routeTestInputs,
     setRouteTestInput,
     lastResponse,
-    testRouteGet
+    testRouteGet,
+    handleInstanceSelect,
+    handleOpenFile
   } = useWebpipe();
 
   return (
@@ -62,6 +64,8 @@ function App() {
         deleteSpecificElement={deleteSpecificElement}
         serverBaseUrl={serverBaseUrl}
         setServerBaseUrl={setServerBaseUrl}
+        onInstanceSelect={handleInstanceSelect}
+        onOpenFile={handleOpenFile}
       />
 
       {/* Main Editor Area */}
