@@ -61,8 +61,14 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
     const isHtml = isHtmlResponse(lastResponse.headers, lastResponse.body);
     const selected = mode === 'auto' ? (isHtml ? 'html' : 'json') : mode;
     if (selected === 'live' && canLivePreview) {
+      // Add timestamp to force iframe refresh when response changes
+      const timestamp = lastResponse && typeof lastResponse === 'object' && 'timestamp' in lastResponse 
+        ? lastResponse.timestamp 
+        : Date.now();
+      
       return (
         <iframe
+          key={`live-${timestamp}-${lastResponse?.url}`}
           src={lastResponse.url}
           style={{ width: '100%', height: '100%', border: '0', backgroundColor: '#ffffff' }}
           sandbox="allow-scripts allow-forms allow-same-origin"

@@ -197,12 +197,12 @@ describe "hello, world"
       const input = overridePathOrUrl ?? routeTestInputs[routeKey] ?? route.path;
       const url = buildRouteUrl(serverBaseUrl, route.path, input);
       if (!url) {
-        setLastResponse({ ok: false, error: 'Base URL is not set' });
+        setLastResponse({ ok: false, timestamp: Date.now(), error: 'Base URL is not set' });
         return;
       }
       if (window.electronAPI && window.electronAPI.httpGet) {
         const res = await window.electronAPI.httpGet(url);
-        setLastResponse({ url, ...res });
+        setLastResponse({ url, timestamp: Date.now(), ...res });
       } else {
         // Fallback in web dev mode: try fetch directly (may hit CORS)
         const r = await fetch(url);
@@ -211,6 +211,7 @@ describe "hello, world"
         try { body = JSON.parse(text); } catch {}
         setLastResponse({
           url,
+          timestamp: Date.now(),
           ok: r.ok,
           status: r.status,
           statusText: r.statusText,
@@ -219,7 +220,7 @@ describe "hello, world"
         });
       }
     } catch (error) {
-      setLastResponse({ ok: false, error: String(error) });
+      setLastResponse({ ok: false, timestamp: Date.now(), error: String(error) });
     }
   };
 
