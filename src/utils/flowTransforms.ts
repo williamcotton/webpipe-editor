@@ -49,23 +49,23 @@ export const pipelineToFlow = (
 
       // Create branch nodes
       if (step.branches) {
-        let branchYOffset = yOffset + RESULT_NODE_HEIGHT + 100;
+        const resultNodeRightX = xBase + NODE_WIDTH + 150; // Position branches to the right
         
         step.branches.forEach((branch, branchIndex) => {
-          const branchXOffset = xBase + (branchIndex - (step.branches!.length - 1) / 2) * 400;
+          // Position branches vertically, starting from the same Y as the result node
+          const branchStartY = yOffset + 50; // Small offset from result node top
           
           branch.steps.forEach((branchStep, stepIndex) => {
             const branchNode: FlowNode = {
               id: branchStep.id,
               type: 'branchStep',
               position: { 
-                x: branchXOffset, 
-                y: branchYOffset + stepIndex * (NODE_HEIGHT + 50)
+                x: resultNodeRightX + stepIndex * (NODE_WIDTH + 50), // Horizontal flow for branch steps
+                y: branchStartY + branchIndex * (NODE_HEIGHT + 100) // Vertical offset per branch
               },
               data: {
                 step: branchStep,
                 branchId: branch.id,
-                branchType: branch.branchType,
                 updateCode: updateStepCode
               },
               width: NODE_WIDTH,
@@ -73,7 +73,7 @@ export const pipelineToFlow = (
             };
             nodes.push(branchNode);
 
-            // Connect result to first branch step
+            // Connect result to first branch step using right-side handle
             if (stepIndex === 0) {
               edges.push({
                 id: `${step.id}-${branchStep.id}`,
@@ -83,20 +83,22 @@ export const pipelineToFlow = (
                 targetHandle: 'input'
               });
             } else {
-              // Connect branch steps together
+              // Connect branch steps together horizontally
               const prevStep = branch.steps[stepIndex - 1];
               edges.push({
                 id: `${prevStep.id}-${branchStep.id}`,
                 source: prevStep.id,
-                target: branchStep.id
+                target: branchStep.id,
+                sourceHandle: 'output',
+                targetHandle: 'input'
               });
             }
           });
         });
 
-        // Update yOffset to account for branch depth
-        const maxBranchDepth = Math.max(...step.branches.map(b => b.steps.length));
-        yOffset = branchYOffset + maxBranchDepth * (NODE_HEIGHT + 50);
+        // Update yOffset to account for branch layout
+        const maxBranchCount = step.branches.length;
+        yOffset += RESULT_NODE_HEIGHT + (maxBranchCount * (NODE_HEIGHT + 100)) + 100;
       } else {
         yOffset += RESULT_NODE_HEIGHT + 100;
       }

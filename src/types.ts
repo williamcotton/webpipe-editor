@@ -33,6 +33,7 @@ export interface FlowNodeData {
   branchId?: string;
   updateCode: (code: string) => void;
   branchType?: string;
+  isFirstNode?: boolean;
 }
 
 export interface FlowNode {

@@ -8,7 +8,7 @@ interface BranchStepNodeProps extends NodeProps {
 }
 
 export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => {
-  const { step, updateCode, branchType } = data;
+  const { step, updateCode } = data;
 
   return (
     <div style={{
@@ -30,30 +30,17 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
           width: '12px',
           height: '12px',
           backgroundColor: '#0e639c',
-          border: '2px solid #1e1e1e'
+          border: '2px solid #1e1e1e',
+          top: '3px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          position: 'absolute'
         }}
       />
-
-      {/* Branch Indicator */}
-      <div style={{
-        position: 'absolute',
-        top: '-8px',
-        left: '8px',
-        backgroundColor: '#0e639c',
-        color: 'white',
-        padding: '2px 8px',
-        borderRadius: '4px',
-        fontSize: '9px',
-        fontWeight: 'bold',
-        zIndex: 10
-      }}>
-        {branchType}
-      </div>
 
       {/* Header */}
       <div style={{
         padding: '8px 12px',
-        paddingTop: '16px',
         backgroundColor: '#2d2d30',
         borderBottom: '1px solid #3e3e42',
         color: '#cccccc',
@@ -62,12 +49,6 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
         justifyContent: 'space-between'
       }}>
         <span>{step.type}</span>
-        <div style={{
-          width: '8px',
-          height: '8px',
-          backgroundColor: '#0e639c',
-          borderRadius: '50%'
-        }} />
       </div>
 
       {/* Code Editor */}
@@ -133,7 +114,11 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
           width: '12px',
           height: '12px',
           backgroundColor: '#0e639c',
-          border: '2px solid #1e1e1e'
+          border: '2px solid #1e1e1e',
+          bottom: '3px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          position: 'absolute'
         }}
       />
     </div>

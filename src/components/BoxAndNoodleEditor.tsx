@@ -58,15 +58,23 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     [setEdges]
   );
 
-  const customEdgeStyles = {
-    stroke: '#0e639c',
-    strokeWidth: 2,
-  };
+  // Custom edge styling based on selection
+  const getEdgeStyle = (selected?: boolean) => ({
+    stroke: selected ? '#00ff88' : '#0e639c', // Bright green for selected, blue for normal
+    strokeWidth: selected ? 3 : 2, // Thicker when selected
+    filter: selected ? 'drop-shadow(0 0 6px #00ff8866)' : 'none', // Glow effect for selected
+  });
 
   const defaultEdgeOptions = {
-    style: customEdgeStyles,
+    style: getEdgeStyle(false),
     type: 'smoothstep',
   };
+
+  // Update edges with custom styling
+  const styledEdges = edges.map(edge => ({
+    ...edge,
+    style: getEdgeStyle(edge.selected),
+  }));
 
   return (
     <div style={{ 
@@ -74,9 +82,21 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
       width: '100%',
       backgroundColor: '#1e1e1e'
     }}>
+      {/* Custom CSS for selected edges */}
+      <style>{`
+        .react-flow__edge.selected .react-flow__edge-path {
+          stroke: #00ff88 !important;
+          stroke-width: 3px !important;
+          filter: drop-shadow(0 0 6px #00ff8866) !important;
+        }
+        .react-flow__edge:hover .react-flow__edge-path {
+          stroke: #66ccff !important;
+          stroke-width: 2.5px !important;
+        }
+      `}</style>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={styledEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}

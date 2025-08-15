@@ -18,7 +18,8 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
       borderRadius: '8px',
       overflow: 'hidden',
       fontSize: '12px',
-      boxShadow: selected ? '0 0 0 1px #0e639c' : '0 2px 8px rgba(0,0,0,0.3)'
+      boxShadow: selected ? '0 0 0 1px #0e639c' : '0 2px 8px rgba(0,0,0,0.3)',
+      position: 'relative'
     }}>
       {/* Input Handle */}
       <Handle
@@ -29,7 +30,11 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
           width: '12px',
           height: '12px',
           backgroundColor: '#666',
-          border: '2px solid #1e1e1e'
+          border: '2px solid #1e1e1e',
+          top: '3px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          position: 'absolute'
         }}
       />
 
@@ -120,7 +125,11 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
           width: '12px',
           height: '12px',
           backgroundColor: '#666',
-          border: '2px solid #1e1e1e'
+          border: '2px solid #1e1e1e',
+          bottom: '3px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          position: 'absolute'
         }}
       />
     </div>

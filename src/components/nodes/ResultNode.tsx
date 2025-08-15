@@ -30,7 +30,11 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
           width: '12px',
           height: '12px',
           backgroundColor: '#666',
-          border: '2px solid #1e1e1e'
+          border: '2px solid #1e1e1e',
+          top: '3px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          position: 'absolute'
         }}
       />
 
@@ -39,11 +43,9 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
         padding: '12px 16px',
         backgroundColor: '#2d2d30',
         borderBottom: '1px solid #3e3e42',
-        color: '#cccccc',
-        textAlign: 'center',
-        fontWeight: 'bold'
+        color: '#cccccc'
       }}>
-        Result Block
+        result
       </div>
 
       {/* Branch Info */}
@@ -72,7 +74,8 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
               padding: '6px 10px',
               backgroundColor: '#1e1e1e',
               borderRadius: '4px',
-              border: '1px solid #3e3e42'
+              border: '1px solid #3e3e42',
+              position: 'relative'
             }}
           >
             <span style={{ color: '#cccccc', fontSize: '10px' }}>
@@ -88,34 +91,27 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
             }}>
               {branch.steps.length} step{branch.steps.length !== 1 ? 's' : ''}
             </span>
+            
+            {/* Handle positioned directly on this branch item */}
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={`branch-${index}`}
+              style={{
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#0e639c',
+                border: '2px solid #1e1e1e',
+                right: '-17px', // Position outside the main node container
+                top: '50%',
+                transform: 'translateY(-50%)',
+                position: 'absolute'
+              }}
+            />
           </div>
         ))}
       </div>
 
-      {/* Branch Output Handles */}
-      {branches.map((branch, index) => {
-        const totalBranches = branches.length;
-        const handlePosition = totalBranches === 1 
-          ? 50 // Center for single branch
-          : (index / (totalBranches - 1)) * 80 + 10; // Spread across bottom for multiple
-
-        return (
-          <Handle
-            key={branch.id}
-            type="source"
-            position={Position.Bottom}
-            id={`branch-${index}`}
-            style={{
-              width: '10px',
-              height: '10px',
-              backgroundColor: '#0e639c',
-              border: '2px solid #1e1e1e',
-              left: `${handlePosition}%`,
-              transform: 'translateX(-50%)'
-            }}
-          />
-        );
-      })}
 
       {/* Default output handle if no branches */}
       {branches.length === 0 && (
@@ -127,7 +123,11 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
             width: '12px',
             height: '12px',
             backgroundColor: '#666',
-            border: '2px solid #1e1e1e'
+            border: '2px solid #1e1e1e',
+            bottom: '3px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            position: 'absolute'
           }}
         />
       )}
