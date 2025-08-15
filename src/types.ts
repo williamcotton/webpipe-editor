@@ -4,6 +4,14 @@ export interface PipelineStep {
   language: string;
   code: string;
   output?: string;
+  branches?: ResultBranch[];
+}
+
+export interface ResultBranch {
+  id: string;
+  branchType: string;
+  statusCode: number;
+  steps: PipelineStep[];
 }
 
 export interface SelectedElement {

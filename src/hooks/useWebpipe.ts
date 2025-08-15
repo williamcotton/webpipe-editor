@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { parseProgram, prettyPrint } from 'webpipe-js';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
-import { getLanguageForType, getDefaultCode, availableOperations } from '../utils';
+import { getDefaultCode, availableOperations, extractStepsFromPipeline } from '../utils';
 import { WebpipeInstance, buildServerUrlFromInstance } from '../utils/processUtils';
 
 const DEFAULT_CONTENT = [
@@ -71,18 +71,8 @@ export const useWebpipe = () => {
           let steps: PipelineStep[] = [];
           // Handle the actual webpipe-js structure: route.pipeline.pipeline.steps
           if ((firstRoute.pipeline as any)?.pipeline?.steps) {
-            steps = (firstRoute.pipeline as any).pipeline.steps.map((step: any, index: number) => {
-              const stepType = step.name; // webpipe-js uses 'name' for the step type
-              const stepCode = step.config; // webpipe-js uses 'config' for the step code
-              
-              return {
-                id: `${firstRoute.method}-${firstRoute.path}-${index}`,
-                type: stepType,
-                language: getLanguageForType(stepType),
-                code: stepCode,
-                output: ''
-              };
-            });
+            const routePrefix = `${firstRoute.method}-${firstRoute.path}`;
+            steps = extractStepsFromPipeline((firstRoute.pipeline as any).pipeline.steps, routePrefix);
           }
 
           setPipelineSteps(steps);

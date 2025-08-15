@@ -41,3 +41,44 @@ export const availableOperations = [
   { type: 'cache', label: 'cache', language: 'yaml' },
   { type: 'log', label: 'log', language: 'yaml' }
 ];
+
+export const extractStepsFromPipeline = (steps: any[], routePrefix: string): import('./types').PipelineStep[] => {
+  return steps.map((step: any, index: number) => {
+    if (step.kind === 'Result') {
+      // Handle result blocks
+      const branches: import('./types').ResultBranch[] = step.branches.map((branch: any, branchIndex: number) => {
+        const branchType = branch.branchType.kind === 'Ok' ? 'ok' : 
+                          branch.branchType.kind === 'Custom' ? branch.branchType.name : 
+                          branch.branchType.kind.toLowerCase();
+        
+        return {
+          id: `${routePrefix}-result-${index}-branch-${branchIndex}`,
+          branchType: `${branchType}(${branch.statusCode})`,
+          statusCode: branch.statusCode,
+          steps: extractStepsFromPipeline(branch.pipeline.steps, `${routePrefix}-result-${index}-branch-${branchIndex}`)
+        };
+      });
+
+      return {
+        id: `${routePrefix}-${index}`,
+        type: 'result',
+        language: 'text',
+        code: '',
+        output: '',
+        branches
+      };
+    } else {
+      // Handle regular steps
+      const stepType = step.name;
+      const stepCode = step.config;
+      
+      return {
+        id: `${routePrefix}-${index}`,
+        type: stepType,
+        language: getLanguageForType(stepType),
+        code: stepCode,
+        output: ''
+      };
+    }
+  });
+};

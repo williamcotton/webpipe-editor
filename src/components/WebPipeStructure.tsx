@@ -1,6 +1,6 @@
 import React from 'react';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
-import { getLanguageForType } from '../utils';
+import { extractStepsFromPipeline } from '../utils';
 import { AddButton } from './AddButton';
 
 interface WebPipeStructureProps {
@@ -35,36 +35,13 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
 }) => {
   const extractPipelineSteps = (pipeline: any, prefix: string): PipelineStep[] => {
     if (!pipeline?.pipeline?.steps) return [];
-    
-    return pipeline.pipeline.steps.map((step: any, stepIndex: number) => {
-      const stepType = step.name; // webpipe-js uses 'name' for the step type
-      const stepCode = step.config; // webpipe-js uses 'config' for the step code
-      
-      return {
-        id: `${prefix}-${stepIndex}`,
-        type: stepType,
-        language: getLanguageForType(stepType),
-        code: stepCode,
-        output: ''
-      };
-    });
+    return extractStepsFromPipeline(pipeline.pipeline.steps, prefix);
   };
 
   const extractRouteSteps = (route: any): PipelineStep[] => {
     if (!route.pipeline?.pipeline?.steps) return [];
-    
-    return route.pipeline.pipeline.steps.map((step: any, stepIndex: number) => {
-      const stepType = step.name;
-      const stepCode = step.config;
-      
-      return {
-        id: `${route.method}-${route.path}-${stepIndex}`,
-        type: stepType,
-        language: getLanguageForType(stepType),
-        code: stepCode,
-        output: ''
-      };
-    });
+    const routePrefix = `${route.method}-${route.path}`;
+    return extractStepsFromPipeline(route.pipeline.pipeline.steps, routePrefix);
   };
 
   if (!parsedData) return null;
