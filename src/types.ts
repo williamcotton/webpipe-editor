@@ -19,10 +19,35 @@ export interface SelectedElement {
   data: any;
 }
 
-export type ViewMode = 'all' | 'single' | 'source';
+export type ViewMode = 'all' | 'single' | 'source' | 'flow';
 
 export interface AvailableOperation {
   type: string;
   label: string;
   language: string;
+}
+
+// Flow-related types
+export interface FlowNodeData {
+  step: PipelineStep;
+  branchId?: string;
+  updateCode: (code: string) => void;
+  branchType?: string;
+}
+
+export interface FlowNode {
+  id: string;
+  type: 'pipelineStep' | 'result' | 'branchStep';
+  position: { x: number; y: number };
+  data: FlowNodeData;
+  width?: number;
+  height?: number;
+}
+
+export interface FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
 }

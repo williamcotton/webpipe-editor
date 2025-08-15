@@ -1,6 +1,7 @@
 import React from 'react';
 import Editor from '@monaco-editor/react';
 import { PipelineEditor } from './PipelineEditor';
+import { BoxAndNoodleEditor } from './BoxAndNoodleEditor';
 import { SingleEditor } from './SingleEditor';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
 
@@ -74,7 +75,12 @@ export const MainEditor: React.FC<MainEditorProps> = ({
         {getHeaderText()}
       </div>
       
-      {selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
+      {selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'flow' ? (
+        <BoxAndNoodleEditor
+          pipelineSteps={pipelineSteps}
+          updateStepCode={updateStepCode}
+        />
+      ) : selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
         <PipelineEditor
           pipelineSteps={pipelineSteps}
           updateStepCode={updateStepCode}
