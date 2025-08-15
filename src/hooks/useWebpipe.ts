@@ -42,6 +42,7 @@ export const useWebpipe = () => {
   const [serverBaseUrl, setServerBaseUrl] = useState<string>('');
   const [routeTestInputs, setRouteTestInputs] = useState<Record<string, string>>({});
   const [lastResponse, setLastResponse] = useState<any>(null);
+  const [isUpdatingFromSave, setIsUpdatingFromSave] = useState<boolean>(false);
 
   // Sync pipelineSteps state with ref
   useEffect(() => {
@@ -87,7 +88,8 @@ describe "hello, world"
         const parsed = parseProgram(webpipeSource);
         setParsedData(parsed);
         
-        if (parsed && parsed.routes && parsed.routes.length > 0) {
+        // Only auto-select first route if no route is currently selected and not updating from save
+        if (parsed && parsed.routes && parsed.routes.length > 0 && !selectedElement && !isUpdatingFromSave) {
           const firstRoute = parsed.routes[0];
           
           let steps: PipelineStep[] = [];
@@ -116,7 +118,12 @@ describe "hello, world"
     };
     
     parseWebpipeSource();
-  }, [webpipeSource]);
+    
+    // Reset the flag after parsing
+    if (isUpdatingFromSave) {
+      setIsUpdatingFromSave(false);
+    }
+  }, [webpipeSource, selectedElement, isUpdatingFromSave]);
 
   // Update webpipe source when pipeline steps change
   const updateWebpipeSource = (): string | null => {
@@ -150,6 +157,7 @@ describe "hello, world"
         const formatted = prettyPrint(updatedData);
         
         if (formatted) {
+          setIsUpdatingFromSave(true);
           setWebpipeSource(formatted);
           return formatted;
         } else {
