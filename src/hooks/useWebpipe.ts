@@ -91,6 +91,49 @@ export const useWebpipe = () => {
     }
   }, [webpipeSource, selectedElement, isUpdatingFromSave]);
 
+  // Convert pipeline steps back to webpipe format
+  const convertStepsToWebpipeFormat = (steps: PipelineStep[]): any[] => {
+    return steps.map(step => {
+      if (step.type === 'result' && step.branches) {
+        // Handle result blocks
+        return {
+          kind: 'Result',
+          branches: step.branches.map(branch => {
+            // Extract branch type from the format like "ok(200)" or "error(404)"
+            const branchTypeMatch = branch.branchType.match(/^([^(]+)\((\d+)\)$/);
+            const branchTypeName = branchTypeMatch ? branchTypeMatch[1] : 'ok';
+            const statusCode = branchTypeMatch ? parseInt(branchTypeMatch[2]) : 200;
+            
+            // Convert branch type back to webpipe format
+            let branchTypeObj;
+            if (branchTypeName === 'ok') {
+              branchTypeObj = { kind: 'Ok' };
+            } else if (branchTypeName === 'error') {
+              branchTypeObj = { kind: 'Error' };
+            } else {
+              branchTypeObj = { kind: 'Custom', name: branchTypeName };
+            }
+            
+            return {
+              branchType: branchTypeObj,
+              statusCode: statusCode,
+              pipeline: {
+                steps: convertStepsToWebpipeFormat(branch.steps)
+              }
+            };
+          })
+        };
+      } else {
+        // Handle regular steps
+        return {
+          kind: 'Regular',
+          name: step.type,
+          config: step.code
+        };
+      }
+    });
+  };
+
   // Update webpipe source when pipeline steps change
   const updateWebpipeSource = (): string | null => {
     try {
@@ -107,11 +150,7 @@ export const useWebpipe = () => {
                 pipeline: {
                   ...route.pipeline,
                   pipeline: {
-                    steps: currentSteps.map(step => ({
-                      kind: "Regular",
-                      name: step.type,
-                      config: step.code
-                    }))
+                    steps: convertStepsToWebpipeFormat(currentSteps)
                   }
                 }
               };
@@ -216,9 +255,33 @@ export const useWebpipe = () => {
 
   const updateStepCode = (stepId: string, code: string) => {
     setPipelineSteps(steps => {
-      const updatedSteps = steps.map(step => 
-        step.id === stepId ? { ...step, code } : step
-      );
+      const updatedSteps = steps.map(step => {
+        // Direct match for regular steps
+        if (step.id === stepId) {
+          return { ...step, code };
+        }
+        
+        // Check branches for result blocks
+        if (step.type === 'result' && step.branches) {
+          const updatedBranches = step.branches.map(branch => ({
+            ...branch,
+            steps: branch.steps.map(branchStep =>
+              branchStep.id === stepId ? { ...branchStep, code } : branchStep
+            )
+          }));
+          
+          // Check if any branch step was updated
+          const wasUpdated = step.branches.some(branch =>
+            branch.steps.some(branchStep => branchStep.id === stepId)
+          );
+          
+          if (wasUpdated) {
+            return { ...step, branches: updatedBranches };
+          }
+        }
+        
+        return step;
+      });
       pipelineStepsRef.current = updatedSteps; // Update ref immediately
       return updatedSteps;
     });
