@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { parseProgram, prettyPrint } from 'webpipe-js';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
 import { getLanguageForType, getDefaultCode, availableOperations } from '../utils';
@@ -33,6 +33,7 @@ export const useWebpipe = () => {
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [isModified, setIsModified] = useState<boolean>(false);
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>([]);
+  const pipelineStepsRef = useRef<PipelineStep[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>('');
   const [selectedStep, setSelectedStep] = useState<string>('');
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
@@ -41,6 +42,11 @@ export const useWebpipe = () => {
   const [serverBaseUrl, setServerBaseUrl] = useState<string>('');
   const [routeTestInputs, setRouteTestInputs] = useState<Record<string, string>>({});
   const [lastResponse, setLastResponse] = useState<any>(null);
+
+  // Sync pipelineSteps state with ref
+  useEffect(() => {
+    pipelineStepsRef.current = pipelineSteps;
+  }, [pipelineSteps]);
 
   // Load test.wp file on mount
   useEffect(() => {
@@ -79,13 +85,10 @@ describe "hello, world"
     const parseWebpipeSource = async () => {
       try {
         const parsed = parseProgram(webpipeSource);
-        console.log('Parsed data:', parsed);
         setParsedData(parsed);
         
         if (parsed && parsed.routes && parsed.routes.length > 0) {
           const firstRoute = parsed.routes[0];
-          console.log('First route:', firstRoute);
-          console.log('First route pipeline:', firstRoute.pipeline);
           
           let steps: PipelineStep[] = [];
           // Handle the actual webpipe-js structure: route.pipeline.pipeline.steps
@@ -103,8 +106,7 @@ describe "hello, world"
               };
             });
           }
-          
-          console.log('Initial steps:', steps);
+
           setPipelineSteps(steps);
           setSelectedRoute(`${firstRoute.method} ${firstRoute.path}`);
         }
@@ -117,28 +119,22 @@ describe "hello, world"
   }, [webpipeSource]);
 
   // Update webpipe source when pipeline steps change
-  const updateWebpipeSource = () => {
+  const updateWebpipeSource = (): string | null => {
     try {
-      console.log('updateWebpipeSource called');
-      console.log('parsedData:', parsedData);
-      console.log('selectedElement:', selectedElement);
-      console.log('pipelineSteps:', pipelineSteps);
+      const currentSteps = pipelineStepsRef.current.length > 0 ? pipelineStepsRef.current : pipelineSteps;
       
-      if (parsedData && selectedElement?.type === 'route' && pipelineSteps.length > 0) {
+      if (parsedData && selectedElement?.type === 'route' && currentSteps.length > 0) {
         const updatedData = {
           ...parsedData,
           routes: parsedData.routes.map((route: any) => {
             // Use method and path to match instead of object reference
             if (route.method === selectedElement.data.method && route.path === selectedElement.data.path) {
-              console.log('Updating route:', route.method, route.path);
-              console.log('New steps:', pipelineSteps);
-              
               return {
                 ...route,
                 pipeline: {
                   ...route.pipeline,
                   pipeline: {
-                    steps: pipelineSteps.map(step => ({
+                    steps: currentSteps.map(step => ({
                       kind: "Regular",
                       name: step.type,
                       config: step.code
@@ -151,25 +147,21 @@ describe "hello, world"
           })
         };
         
-        console.log('Updated data:', updatedData);
         const formatted = prettyPrint(updatedData);
-        console.log('Formatted result:', formatted);
         
         if (formatted) {
           setWebpipeSource(formatted);
-          console.log('Source updated successfully');
+          return formatted;
         } else {
           console.error('prettyPrint returned empty result');
+          return null;
         }
       } else {
-        console.log('Conditions not met for update:', {
-          hasParsedData: !!parsedData,
-          isRoute: selectedElement?.type === 'route',
-          hasSteps: pipelineSteps.length > 0
-        });
+        return webpipeSource; // Return current source if no update needed
       }
     } catch (error) {
       console.error('Failed to update webpipe source:', error);
+      return null;
     }
   };
 
@@ -248,11 +240,15 @@ describe "hello, world"
   };
 
   const updateStepCode = (stepId: string, code: string) => {
-    setPipelineSteps(steps => 
-      steps.map(step => 
+    setPipelineSteps(steps => {
+      const updatedSteps = steps.map(step => 
         step.id === stepId ? { ...step, code } : step
-      )
-    );
+      );
+      pipelineStepsRef.current = updatedSteps; // Update ref immediately
+      return updatedSteps;
+    });
+    // Mark as modified when step code changes
+    setIsModified(true);
   };
 
   const createNewRoute = () => {
@@ -582,9 +578,19 @@ describe "hello, world"
   const handleSave = async () => {
     if (!window.electronAPI) return;
 
+    // Update webpipe source from current pipeline steps before saving
+    const updatedSource = updateWebpipeSource();
+    let sourceToSave = updatedSource !== null ? updatedSource : webpipeSource;
+    
+    // Ensure sourceToSave is always a string
+    if (typeof sourceToSave !== 'string') {
+      console.error('sourceToSave is not a string:', typeof sourceToSave, sourceToSave);
+      sourceToSave = String(sourceToSave);
+    }
+
     if (currentFilePath) {
       // Save to existing file
-      const success = await window.electronAPI.saveFileToPath(currentFilePath, webpipeSource);
+      const success = await window.electronAPI.saveFileToPath(currentFilePath, sourceToSave);
       if (success) {
         setIsModified(false);
       }
@@ -597,9 +603,13 @@ describe "hello, world"
   const handleSaveAs = async () => {
     if (!window.electronAPI) return;
 
+    // Update webpipe source from current pipeline steps before saving
+    const updatedSource = updateWebpipeSource();
+    const sourceToSave = updatedSource !== null ? updatedSource : webpipeSource;
+
     const filePath = await window.electronAPI.showSaveDialog(currentFilePath || 'untitled.wp');
     if (filePath) {
-      const success = await window.electronAPI.saveFileToPath(filePath, webpipeSource);
+      const success = await window.electronAPI.saveFileToPath(filePath, sourceToSave);
       if (success) {
         setCurrentFilePath(filePath);
         setIsModified(false);
@@ -637,9 +647,7 @@ describe "hello, world"
   // Track modifications
   const setWebpipeSourceWithModified = (source: string) => {
     setWebpipeSource(source);
-    if (currentFilePath) {
-      setIsModified(true);
-    }
+    setIsModified(true);
   };
 
   return {

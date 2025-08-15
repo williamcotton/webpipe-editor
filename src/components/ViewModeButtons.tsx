@@ -4,7 +4,7 @@ import { ViewMode } from '../types';
 interface ViewModeButtonsProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  updateWebpipeSource: () => void;
+  updateWebpipeSource: () => string | null;
 }
 
 export const ViewModeButtons: React.FC<ViewModeButtonsProps> = ({

@@ -6,7 +6,7 @@ import { PipelineStep, SelectedElement, ViewMode } from '../types';
 interface SidebarProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  updateWebpipeSource: () => void;
+  updateWebpipeSource: () => string | null;
   parsedData: any;
   selectedElement: SelectedElement | null;
   setSelectedElement: (element: SelectedElement) => void;

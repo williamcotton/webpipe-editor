@@ -49,15 +49,8 @@ export const SingleEditor: React.FC<SingleEditorProps> = ({
     }
   };
 
-  const handleChange = (value: string | undefined) => {
-    // Handle updates to configs, variables, tests
-    if (selectedElement?.type === 'variable') {
-      // Update variable value
-      console.log('Update variable:', value);
-    } else if (selectedElement?.type === 'config') {
-      // Update config properties
-      console.log('Update config:', value);
-    }
+  const handleChange = (_value: string | undefined) => {
+    // do nothing
   };
 
   return (

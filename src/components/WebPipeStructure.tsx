@@ -57,8 +57,6 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
       const stepType = step.name;
       const stepCode = step.config;
       
-      console.log('Processing step:', step, 'Type:', stepType, 'Code:', stepCode);
-      
       return {
         id: `${route.method}-${route.path}-${stepIndex}`,
         type: stepType,
@@ -167,14 +165,12 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
             >
               <span
                 onClick={() => {
-                  console.log('Route clicked:', route);
                   setSelectedElement({ type: 'route', data: route });
                   setSelectedRoute(`${route.method} ${route.path}`);
                   setViewMode('all'); // Switch to all view to show pipeline
                   
                   // Extract pipeline steps from the route
                   const steps = extractRouteSteps(route);
-                  console.log('Setting pipeline steps:', steps);
                   setPipelineSteps(steps);
                 }}
                 style={{ cursor: 'pointer', flex: 1 }}

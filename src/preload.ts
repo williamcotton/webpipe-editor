@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { Program } from 'webpipe-js';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   incrementCounter: () => ipcRenderer.invoke('increment-counter'),
@@ -34,8 +35,8 @@ declare global {
       getCounter: () => Promise<number>;
       loadFile: (filePath: string) => Promise<string>;
       saveFile: (filePath: string, content: string) => Promise<void>;
-      parseWebpipe: (source: string) => Promise<any>;
-      formatWebpipe: (data: any) => Promise<string>;
+      parseWebpipe: (source: string) => Promise<Program>;
+      formatWebpipe: (data: Program) => Promise<string>;
       
       // File dialog operations
       showSaveDialog: (defaultPath?: string) => Promise<string | null>;
