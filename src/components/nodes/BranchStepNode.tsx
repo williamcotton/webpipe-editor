@@ -89,7 +89,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
           height="250px"
           language={step.language}
           value={step.code}
-          onChange={(value) => updateCode(step.id, value || '')}
+          onChange={(value) => updateCode(value || '')}
           onMount={handleEditorMount}
           theme="vs-dark"
           options={{

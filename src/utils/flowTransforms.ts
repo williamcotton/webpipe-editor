@@ -34,7 +34,7 @@ export const pipelineToFlow = (
         position: { x: xBase, y: yOffset },
         data: {
           step,
-          updateCode: updateStepCode,
+          updateCode: (code: string) => updateStepCode(step.id, code),
           variableDefinitions,
           onJumpToDefinition
         },
@@ -71,7 +71,7 @@ export const pipelineToFlow = (
               data: {
                 step: branchStep,
                 branchId: branch.id,
-                updateCode: updateStepCode,
+                updateCode: (code: string) => updateStepCode(branchStep.id, code),
                 variableDefinitions,
                 onJumpToDefinition
               },
@@ -117,7 +117,7 @@ export const pipelineToFlow = (
         position: { x: xBase, y: yOffset },
         data: {
           step,
-          updateCode: updateStepCode,
+          updateCode: (code: string) => updateStepCode(step.id, code),
           variableDefinitions,
           onJumpToDefinition
         },

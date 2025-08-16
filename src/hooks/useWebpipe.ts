@@ -134,7 +134,8 @@ export const useWebpipe = () => {
         return {
           kind: 'Regular',
           name: step.type,
-          config: step.code
+          config: step.code,
+          configType: 'backtick' // Default to backtick format for most configs
         };
       }
     });
