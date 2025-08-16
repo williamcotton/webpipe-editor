@@ -1,21 +1,22 @@
 import dagre from 'dagre';
-import { PipelineStep, FlowNode, FlowEdge } from '../types';
+import { Node as RFNode, Edge as RFEdge } from '@xyflow/react';
+import { PipelineStep, FlowNodeData } from '../types';
 
 const NODE_WIDTH = 350;
 const NODE_HEIGHT = 450;
 const RESULT_NODE_HEIGHT = 200;
 
 export interface FlowData {
-  nodes: FlowNode[];
-  edges: FlowEdge[];
+  nodes: RFNode<FlowNodeData>[];
+  edges: RFEdge[];
 }
 
 export const pipelineToFlow = (
   steps: PipelineStep[],
   updateStepCode: (stepId: string, code: string) => void
 ): FlowData => {
-  const nodes: FlowNode[] = [];
-  const edges: FlowEdge[] = [];
+  const nodes: RFNode<FlowNodeData>[] = [];
+  const edges: RFEdge[] = [];
 
   let yOffset = 0;
   const xBase = 0;
@@ -25,7 +26,7 @@ export const pipelineToFlow = (
     
     if (step.type === 'result') {
       // Create result node
-      const resultNode: FlowNode = {
+      const resultNode: RFNode<FlowNodeData> = {
         id: step.id,
         type: 'result',
         position: { x: xBase, y: yOffset },
@@ -56,7 +57,7 @@ export const pipelineToFlow = (
           const branchStartY = yOffset + 50; // Small offset from result node top
           
           branch.steps.forEach((branchStep, stepIndex) => {
-            const branchNode: FlowNode = {
+            const branchNode: RFNode<FlowNodeData> = {
               id: branchStep.id,
               type: 'branchStep',
               position: { 
@@ -104,7 +105,7 @@ export const pipelineToFlow = (
       }
     } else {
       // Create regular pipeline step node
-      const stepNode: FlowNode = {
+      const stepNode: RFNode<FlowNodeData> = {
         id: step.id,
         type: 'pipelineStep',
         position: { x: xBase, y: yOffset },
@@ -137,7 +138,7 @@ export const pipelineToFlow = (
   return { nodes, edges };
 };
 
-export const autoLayout = (nodes: FlowNode[], edges: FlowEdge[]): FlowNode[] => {
+export const autoLayout = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): RFNode<FlowNodeData>[] => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 150 });
@@ -167,7 +168,7 @@ export const autoLayout = (nodes: FlowNode[], edges: FlowEdge[]): FlowNode[] => 
   });
 };
 
-export const flowToPipeline = (nodes: FlowNode[], edges: FlowEdge[]): PipelineStep[] => {
+export const flowToPipeline = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): PipelineStep[] => {
   // For now, just convert nodes to steps in their current order
   // This preserves basic functionality while we debug the ordering issue
   const mainPipelineNodes = nodes.filter(node => node.type !== 'branchStep');
@@ -179,10 +180,10 @@ export const flowToPipeline = (nodes: FlowNode[], edges: FlowEdge[]): PipelineSt
       // Reconstruct branches
       step.branches = step.branches.map(branch => {
         const branchNodes = nodes.filter(n => 
-          n.data.branchId === branch.id && n.type === 'branchStep'
+          (n.data as FlowNodeData).branchId === branch.id && n.type === 'branchStep'
         );
         
-        const sortedBranchSteps = branchNodes.map(branchNode => ({ ...branchNode.data.step }));
+        const sortedBranchSteps = branchNodes.map(branchNode => ({ ...((branchNode.data as FlowNodeData).step) }));
         
         return {
           ...branch,

@@ -9,7 +9,8 @@ import {
   Connection,
   Edge,
   BackgroundVariant,
-  Node
+  Node as RFNode,
+  Edge as RFEdge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -17,7 +18,7 @@ import { PipelineStepNode } from './nodes/PipelineStepNode';
 import { ResultNode } from './nodes/ResultNode';
 import { BranchStepNode } from './nodes/BranchStepNode';
 import { FlowContextMenu } from './FlowContextMenu';
-import { PipelineStep, FlowNode, FlowEdge } from '../types';
+import { PipelineStep, FlowNodeData } from '../types';
 import { pipelineToFlow, autoLayout, flowToPipeline } from '../utils/flowTransforms';
 import { getDefaultCode, availableOperations } from '../utils';
 
@@ -60,8 +61,8 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     };
   }, [pipelineSteps, updateStepCode]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<FlowEdge>(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>(initialEdges);
 
   // Update ref when pipelineSteps changes from outside
   useEffect(() => {
@@ -87,21 +88,25 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
       setEdges(flowData.edges);
     } else {
       // No structural change - only update node data, preserve edges
-      setNodes(prevNodes => 
-        prevNodes.map(node => {
+      setNodes(prevNodes => {
+        const nextNodes = prevNodes.map(node => {
           const updatedNode = layoutedNodes.find(n => n.id === node.id);
-          return updatedNode ? { ...node, data: updatedNode.data } : node;
-        })
-      );
+          if (!updatedNode) return node;
+          // Only replace when data actually changed to avoid unnecessary renders
+          const dataChanged = JSON.stringify(node.data) !== JSON.stringify(updatedNode.data);
+          return dataChanged ? { ...node, data: updatedNode.data } : node;
+        });
+        return nextNodes;
+      });
     }
-  }, [pipelineSteps, updateStepCode, setNodes, setEdges, nodes]);
+  }, [pipelineSteps, updateStepCode]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+  const handleContextMenu = useCallback((event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
     event.preventDefault();
     setContextMenu({
       x: event.clientX,
@@ -120,7 +125,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   }, []);
 
   // Handle node deletion
-  const onNodesDelete = useCallback((deletedNodes: Node[]) => {
+  const onNodesDelete = useCallback((deletedNodes: RFNode[]) => {
     if (!deleteStep) return;
     
     deletedNodes.forEach(node => {
@@ -129,7 +134,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   }, [deleteStep]);
 
   // Handle edge deletion
-  const onEdgesDelete = useCallback((deletedEdges: Edge[]) => {
+  const onEdgesDelete = useCallback((_deletedEdges: RFEdge[]) => {
     // Edge deletion is handled automatically by ReactFlow state
     // The structure change will be picked up by the effect below
   }, []);
