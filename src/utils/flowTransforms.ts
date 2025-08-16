@@ -179,9 +179,10 @@ export const flowToPipeline = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): 
     if (node.type === 'result' && step.branches) {
       // Reconstruct branches
       step.branches = step.branches.map(branch => {
-        const branchNodes = nodes.filter(n => 
-          (n.data as FlowNodeData).branchId === branch.id && n.type === 'branchStep'
-        );
+        const branchNodes = nodes
+          .filter(n => (n.data as FlowNodeData).branchId === branch.id && n.type === 'branchStep')
+          // ensure stable order by x position (left-to-right)
+          .sort((a, b) => a.position.x - b.position.x);
         
         const sortedBranchSteps = branchNodes.map(branchNode => ({ ...((branchNode.data as FlowNodeData).step) }));
         

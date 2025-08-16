@@ -34,6 +34,7 @@ export interface FlowNodeData {
   updateCode: (code: string) => void;
   branchType?: string;
   isFirstNode?: boolean;
+  [key: string]: unknown;
 }
 
 export interface FlowNode {
@@ -51,4 +52,5 @@ export interface FlowEdge {
   target: string;
   sourceHandle?: string;
   targetHandle?: string;
+  selected?: boolean;
 }

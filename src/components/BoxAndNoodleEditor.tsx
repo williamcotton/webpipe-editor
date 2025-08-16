@@ -7,7 +7,6 @@ import {
   useEdgesState,
   addEdge,
   Connection,
-  Edge,
   BackgroundVariant,
   Node as RFNode,
   Edge as RFEdge
@@ -20,7 +19,7 @@ import { BranchStepNode } from './nodes/BranchStepNode';
 import { FlowContextMenu } from './FlowContextMenu';
 import { PipelineStep, FlowNodeData } from '../types';
 import { pipelineToFlow, autoLayout, flowToPipeline } from '../utils/flowTransforms';
-import { getDefaultCode, availableOperations } from '../utils';
+ 
 
 interface BoxAndNoodleEditorProps {
   pipelineSteps: PipelineStep[];
@@ -102,8 +101,36 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   }, [pipelineSteps, updateStepCode]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+      // If connecting from a result branch handle, convert the target node into a branch step
+      const handleId = params.sourceHandle ?? undefined;
+      if (params.source && params.target && handleId && handleId.startsWith('branch-')) {
+        setNodes((prev) => {
+          const sourceNode = prev.find((n) => n.id === params.source);
+          if (!sourceNode || sourceNode.type !== 'result') return prev;
+          const branchIndexStr = handleId.replace('branch-', '');
+          const branchIndex = parseInt(branchIndexStr, 10);
+          const resultStep = (sourceNode.data as FlowNodeData).step;
+          const branch = resultStep.branches && resultStep.branches[branchIndex];
+          if (!branch) return prev;
+          return prev.map((n) => {
+            if (n.id !== params.target) return n;
+            const existingData = n.data as FlowNodeData;
+            return {
+              ...n,
+              type: 'branchStep',
+              data: {
+                ...existingData,
+                branchId: branch.id,
+                branchType: branch.branchType
+              }
+            } as RFNode<FlowNodeData>;
+          });
+        });
+      }
+    },
+    [setEdges, setNodes]
   );
 
   const handleContextMenu = useCallback((event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
