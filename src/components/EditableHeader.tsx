@@ -189,7 +189,7 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
             <input
               type="text"
               placeholder={selectedElement.data.path}
-              value={routeTestInputs[`${selectedElement.data.method} ${selectedElement.data.path}`] || ''}
+              value={routeTestInputs[`${selectedElement.data.method} ${selectedElement.data.path}`] || selectedElement.data.path}
               onChange={(e) => setRouteTestInput(`${selectedElement.data.method} ${selectedElement.data.path}`, e.target.value)}
               title={serverBaseUrl ? `${serverBaseUrl}${selectedElement.data.path}` : 'Enter full URL or path'}
               style={{
