@@ -29,6 +29,8 @@ interface BoxAndNoodleEditorProps {
   addStep?: (type: string) => void;
   deleteStep?: (stepId: string) => void;
   updatePipelineStructure?: (steps: PipelineStep[]) => void;
+  variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
 }
 
 const nodeTypes = {
@@ -42,7 +44,9 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   updateStepCode,
   addStep,
   deleteStep,
-  updatePipelineStructure
+  updatePipelineStructure,
+  variableDefinitions = [],
+  onJumpToDefinition
 }) => {
   const lastPipelineStepsRef = useRef<PipelineStep[]>(pipelineSteps);
   const [contextMenu, setContextMenu] = useState<{
@@ -55,12 +59,12 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     visible: false
   });
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition);
     return {
       nodes: autoLayout(flowData.nodes, flowData.edges),
       edges: flowData.edges
     };
-  }, [pipelineSteps, updateStepCode]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition]);
 
   const [nodes, setNodes, baseOnNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
   const [edges, setEdges, baseOnEdgesChange] = useEdgesState<RFEdge>(initialEdges);
@@ -88,7 +92,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
 
   // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition);
     const layoutedNodes = autoLayout(flowData.nodes, flowData.edges);
     
     // Only update if the node structure actually changed (not just edge changes)
@@ -116,7 +120,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         return nextNodes;
       });
     }
-  }, [pipelineSteps, updateStepCode]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition]);
 
   const onConnect = useCallback(
     (params: Connection) => {

@@ -1,14 +1,59 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import Editor from '@monaco-editor/react';
 import { FlowNodeData } from '../../types';
+import { getVariableAtPosition, VariableDefinition } from '../../utils/jumpToDefinition';
 
 interface BranchStepNodeProps extends NodeProps {
   data: FlowNodeData;
 }
 
 export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => {
-  const { step, updateCode } = data;
+  const { step, updateCode, variableDefinitions = [], onJumpToDefinition } = data;
+  const editorRef = useRef<any>(null);
+
+  const handleEditorMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    
+    // Add Ctrl+Click (or Cmd+Click on Mac) handler for jump-to-definition
+    editor.onMouseDown((e: any) => {
+      if ((e.event.ctrlKey || e.event.metaKey) && e.target.type === 6) { // Type 6 is CONTENT_TEXT
+        const position = e.target.position;
+        if (position) {
+          const variableInfo = getVariableAtPosition(editor.getModel(), position, variableDefinitions);
+          if (variableInfo && onJumpToDefinition) {
+            const definition = variableDefinitions.find(def => def.name === variableInfo.variableName);
+            onJumpToDefinition(variableInfo.variableName, definition?.lineNumber);
+          }
+        }
+      }
+    });
+    
+    // Add hover provider for variable information
+    monaco.languages.registerHoverProvider('*', {
+      provideHover: (model: any, position: any) => {
+        const variableInfo = getVariableAtPosition(model, position, variableDefinitions);
+        if (variableInfo) {
+          const definition = variableDefinitions.find(def => def.name === variableInfo.variableName);
+          if (definition) {
+            return {
+              range: new monaco.Range(
+                variableInfo.range.startLineNumber,
+                variableInfo.range.startColumn,
+                variableInfo.range.endLineNumber,
+                variableInfo.range.endColumn
+              ),
+              contents: [
+                { value: `**${definition.name}** (${definition.type})` },
+                { value: `\`\`\`${definition.type}\n${definition.value}\n\`\`\`` }
+              ]
+            };
+          }
+        }
+        return null;
+      }
+    });
+  };
 
   return (
     <div style={{
@@ -58,6 +103,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
           language={step.language}
           value={step.code}
           onChange={(value) => updateCode(step.id, value || '')}
+          onMount={handleEditorMount}
           theme="vs-dark"
           options={{
             minimap: { enabled: false },

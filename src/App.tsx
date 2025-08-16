@@ -39,8 +39,30 @@ function App() {
     lastResponse,
     testRouteGet,
     handleInstanceSelect,
-    handleOpenFile
+    handleOpenFile,
+    variableDefinitions
   } = useWebpipe();
+
+  // Handle jump-to-definition functionality
+  const handleJumpToDefinition = (variableName: string, lineNumber?: number) => {
+    // Find the variable in the parsed data and select it
+    const variable = parsedData?.variables?.find((v: any) => v.name === variableName);
+    
+    if (variable) {
+      // Select the variable element to show it in the sidebar
+      setSelectedElement({
+        type: 'variable',
+        data: variable
+      });
+      
+      // Switch to single view to show the variable details
+      setViewMode('single');
+      
+      console.log(`Jumped to variable definition: ${variableName}`);
+    } else {
+      console.log(`Variable not found: ${variableName}`);
+    }
+  };
 
   return (
     <div style={{ 
@@ -98,6 +120,8 @@ function App() {
             addStep={addStep}
             deleteStep={deleteStep}
             updatePipelineStructure={updatePipelineStructure}
+            variableDefinitions={variableDefinitions}
+            onJumpToDefinition={handleJumpToDefinition}
           />
         </div>
       </div>

@@ -13,7 +13,9 @@ export interface FlowData {
 
 export const pipelineToFlow = (
   steps: PipelineStep[],
-  updateStepCode: (stepId: string, code: string) => void
+  updateStepCode: (stepId: string, code: string) => void,
+  variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>,
+  onJumpToDefinition?: (variableName: string, lineNumber?: number) => void
 ): FlowData => {
   const nodes: RFNode<FlowNodeData>[] = [];
   const edges: RFEdge[] = [];
@@ -32,7 +34,9 @@ export const pipelineToFlow = (
         position: { x: xBase, y: yOffset },
         data: {
           step,
-          updateCode: updateStepCode
+          updateCode: updateStepCode,
+          variableDefinitions,
+          onJumpToDefinition
         },
         width: NODE_WIDTH,
         height: RESULT_NODE_HEIGHT
@@ -67,7 +71,9 @@ export const pipelineToFlow = (
               data: {
                 step: branchStep,
                 branchId: branch.id,
-                updateCode: updateStepCode
+                updateCode: updateStepCode,
+                variableDefinitions,
+                onJumpToDefinition
               },
               width: NODE_WIDTH,
               height: NODE_HEIGHT
@@ -111,7 +117,9 @@ export const pipelineToFlow = (
         position: { x: xBase, y: yOffset },
         data: {
           step,
-          updateCode: updateStepCode
+          updateCode: updateStepCode,
+          variableDefinitions,
+          onJumpToDefinition
         },
         width: NODE_WIDTH,
         height: NODE_HEIGHT

@@ -34,6 +34,8 @@ export interface FlowNodeData {
   updateCode: (code: string) => void;
   branchType?: string;
   isFirstNode?: boolean;
+  variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
   [key: string]: unknown;
 }
 

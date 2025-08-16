@@ -3,6 +3,7 @@ import { parseProgram, prettyPrint } from 'webpipe-js';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
 import { getDefaultCode, availableOperations, extractStepsFromPipeline } from '../utils';
 import { WebpipeInstance, buildServerUrlFromInstance } from '../utils/processUtils';
+import { extractVariableDefinitions, VariableDefinition } from '../utils/jumpToDefinition';
 
 const DEFAULT_CONTENT = [
   '# Test App',
@@ -44,6 +45,7 @@ export const useWebpipe = () => {
   const [routeTestInputs, setRouteTestInputs] = useState<Record<string, string>>({});
   const [lastResponse, setLastResponse] = useState<any>(null);
   const [isUpdatingFromSave, setIsUpdatingFromSave] = useState<boolean>(false);
+  const [variableDefinitions, setVariableDefinitions] = useState<VariableDefinition[]>([]);
 
   // Sync pipelineSteps state with ref
   useEffect(() => {
@@ -63,6 +65,10 @@ export const useWebpipe = () => {
       try {
         const parsed = parseProgram(webpipeSource);
         setParsedData(parsed);
+        
+        // Extract variable definitions for jump-to-definition functionality
+        const definitions = extractVariableDefinitions(parsed, webpipeSource);
+        setVariableDefinitions(definitions);
         
         // Only auto-select first route if no route is currently selected and not updating from save
         if (parsed && parsed.routes && parsed.routes.length > 0 && !selectedElement && !isUpdatingFromSave) {
@@ -817,6 +823,7 @@ export const useWebpipe = () => {
     lastResponse,
     testRouteGet,
     handleInstanceSelect,
-    handleOpenFile
+    handleOpenFile,
+    variableDefinitions
   };
 };

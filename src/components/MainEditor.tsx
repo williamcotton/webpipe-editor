@@ -15,6 +15,8 @@ interface MainEditorProps {
   addStep: (type: string) => void;
   deleteStep: (stepId: string) => void;
   updatePipelineStructure: (steps: PipelineStep[]) => void;
+  variableDefinitions: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  onJumpToDefinition: (variableName: string, lineNumber?: number) => void;
 }
 
 export const MainEditor: React.FC<MainEditorProps> = ({
@@ -26,7 +28,9 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   updateStepCode,
   addStep,
   deleteStep,
-  updatePipelineStructure
+  updatePipelineStructure,
+  variableDefinitions,
+  onJumpToDefinition
 }) => {
   const getHeaderText = (): string => {
     if (!selectedElement) {
@@ -88,6 +92,8 @@ export const MainEditor: React.FC<MainEditorProps> = ({
           addStep={addStep}
           deleteStep={deleteStep}
           updatePipelineStructure={updatePipelineStructure}
+          variableDefinitions={variableDefinitions}
+          onJumpToDefinition={onJumpToDefinition}
         />
       ) : selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
         <PipelineEditor
