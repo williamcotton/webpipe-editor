@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -16,12 +16,17 @@ import '@xyflow/react/dist/style.css';
 import { PipelineStepNode } from './nodes/PipelineStepNode';
 import { ResultNode } from './nodes/ResultNode';
 import { BranchStepNode } from './nodes/BranchStepNode';
+import { FlowContextMenu } from './FlowContextMenu';
 import { PipelineStep, FlowNode, FlowEdge } from '../types';
-import { pipelineToFlow, autoLayout } from '../utils/flowTransforms';
+import { pipelineToFlow, autoLayout, flowToPipeline } from '../utils/flowTransforms';
+import { getDefaultCode, availableOperations } from '../utils';
 
 interface BoxAndNoodleEditorProps {
   pipelineSteps: PipelineStep[];
   updateStepCode: (stepId: string, code: string) => void;
+  addStep?: (type: string) => void;
+  deleteStep?: (stepId: string) => void;
+  updatePipelineStructure?: (steps: PipelineStep[]) => void;
 }
 
 const nodeTypes = {
@@ -32,8 +37,21 @@ const nodeTypes = {
 
 export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   pipelineSteps,
-  updateStepCode
+  updateStepCode,
+  addStep,
+  deleteStep,
+  updatePipelineStructure
 }) => {
+  const lastPipelineStepsRef = useRef<PipelineStep[]>(pipelineSteps);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    visible: boolean;
+  }>({
+    x: 0,
+    y: 0,
+    visible: false
+  });
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     const flowData = pipelineToFlow(pipelineSteps, updateStepCode);
     return {
@@ -45,18 +63,116 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<FlowEdge>(initialEdges);
 
-  // Update nodes when pipeline steps change
+  // Update ref when pipelineSteps changes from outside
+  useEffect(() => {
+    lastPipelineStepsRef.current = pipelineSteps;
+  }, [pipelineSteps]);
+
+  // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
     const flowData = pipelineToFlow(pipelineSteps, updateStepCode);
     const layoutedNodes = autoLayout(flowData.nodes, flowData.edges);
-    setNodes(layoutedNodes);
-    setEdges(flowData.edges);
-  }, [pipelineSteps, updateStepCode, setNodes, setEdges]);
+    
+    // Only update if the node structure actually changed (not just edge changes)
+    const currentNodeIds = new Set(nodes.map(n => n.id));
+    const newNodeIds = new Set(layoutedNodes.map(n => n.id));
+    
+    const nodesChanged = currentNodeIds.size !== newNodeIds.size || 
+                        [...currentNodeIds].some(id => !newNodeIds.has(id)) ||
+                        [...newNodeIds].some(id => !currentNodeIds.has(id));
+    
+    if (nodesChanged) {
+      // Structural change - update nodes and reset edges
+      setNodes(layoutedNodes);
+      setEdges(flowData.edges);
+    } else {
+      // No structural change - only update node data, preserve edges
+      setNodes(prevNodes => 
+        prevNodes.map(node => {
+          const updatedNode = layoutedNodes.find(n => n.id === node.id);
+          return updatedNode ? { ...node, data: updatedNode.data } : node;
+        })
+      );
+    }
+  }, [pipelineSteps, updateStepCode, setNodes, setEdges, nodes]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      visible: true
+    });
+  }, []);
+
+  const handleCreateNode = useCallback((type: string) => {
+    if (!addStep) return;
+    addStep(type);
+  }, [addStep]);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenu(prev => ({ ...prev, visible: false }));
+  }, []);
+
+  // Handle node deletion
+  const onNodesDelete = useCallback((deletedNodes: Node[]) => {
+    if (!deleteStep) return;
+    
+    deletedNodes.forEach(node => {
+      deleteStep(node.id);
+    });
+  }, [deleteStep]);
+
+  // Handle edge deletion
+  const onEdgesDelete = useCallback((deletedEdges: Edge[]) => {
+    // Edge deletion is handled automatically by ReactFlow state
+    // The structure change will be picked up by the effect below
+  }, []);
+
+  // Effect to sync structural changes back to pipeline state
+  useEffect(() => {
+    
+    if (!updatePipelineStructure) {
+      console.log('No updatePipelineStructure function, skipping');
+      return;
+    }
+    
+    // Only update if we have nodes and edges (avoid initial empty state)
+    if (nodes.length === 0 && pipelineSteps.length > 0) {
+      console.log('Empty nodes but pipeline has steps, skipping');
+      return;
+    }
+    
+    // Debounce the update to avoid excessive calls
+    const timeoutId = setTimeout(() => {
+      try {
+        console.log('Converting flow to pipeline...');
+        const newPipelineSteps = flowToPipeline(nodes, edges);
+        console.log('Conversion result:', newPipelineSteps.map(s => ({ id: s.id, type: s.type })));
+        
+        // Only update if the structure actually changed
+        const currentJson = JSON.stringify(lastPipelineStepsRef.current);
+        const newJson = JSON.stringify(newPipelineSteps);
+        
+        if (newJson !== currentJson) {
+          console.log('Structure changed, calling updatePipelineStructure');
+          lastPipelineStepsRef.current = newPipelineSteps;
+          updatePipelineStructure(newPipelineSteps);
+        } else {
+          console.log('No change detected');
+        }
+      } catch (error) {
+        console.warn('Failed to convert flow to pipeline:', error);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [nodes, edges, updatePipelineStructure]);
 
   // Custom edge styling based on selection
   const getEdgeStyle = (selected?: boolean) => ({
@@ -99,9 +215,13 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         edges={styledEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodesDelete={onNodesDelete}
+        onEdgesDelete={onEdgesDelete}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
+        onPaneContextMenu={handleContextMenu}
+        deleteKeyCode={['Delete', 'Backspace']}
         fitView
         fitViewOptions={{
           padding: 0.2,
@@ -129,6 +249,14 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
           showInteractive={false}
         />
       </ReactFlow>
+      
+      <FlowContextMenu
+        x={contextMenu.x}
+        y={contextMenu.y}
+        visible={contextMenu.visible}
+        onClose={handleCloseContextMenu}
+        onCreateNode={handleCreateNode}
+      />
     </div>
   );
 };

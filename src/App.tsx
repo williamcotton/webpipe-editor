@@ -20,6 +20,9 @@ function App() {
     setViewMode,
     parsedData,
     updateWebpipeSource,
+    addStep,
+    deleteStep,
+    updatePipelineStructure,
     updateStepCode,
     createNewRoute,
     createNewTest,
@@ -92,6 +95,9 @@ function App() {
             selectedElement={selectedElement}
             pipelineSteps={pipelineSteps}
             updateStepCode={updateStepCode}
+            addStep={addStep}
+            deleteStep={deleteStep}
+            updatePipelineStructure={updatePipelineStructure}
           />
         </div>
       </div>

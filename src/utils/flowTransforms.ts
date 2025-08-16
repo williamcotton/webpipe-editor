@@ -168,20 +168,11 @@ export const autoLayout = (nodes: FlowNode[], edges: FlowEdge[]): FlowNode[] => 
 };
 
 export const flowToPipeline = (nodes: FlowNode[], edges: FlowEdge[]): PipelineStep[] => {
-  // Find the root nodes (nodes without incoming edges)
-  const incomingEdges = new Set(edges.map(e => e.target));
-  const rootNodes = nodes.filter(node => !incomingEdges.has(node.id));
-
-  const pipeline: PipelineStep[] = [];
-  const visited = new Set<string>();
-
-  const traverse = (nodeId: string): PipelineStep | null => {
-    if (visited.has(nodeId)) return null;
-    visited.add(nodeId);
-
-    const node = nodes.find(n => n.id === nodeId);
-    if (!node) return null;
-
+  // For now, just convert nodes to steps in their current order
+  // This preserves basic functionality while we debug the ordering issue
+  const mainPipelineNodes = nodes.filter(node => node.type !== 'branchStep');
+  
+  const pipeline: PipelineStep[] = mainPipelineNodes.map(node => {
     const step = { ...node.data.step };
 
     if (node.type === 'result' && step.branches) {
@@ -191,34 +182,17 @@ export const flowToPipeline = (nodes: FlowNode[], edges: FlowEdge[]): PipelineSt
           n.data.branchId === branch.id && n.type === 'branchStep'
         );
         
-        // Sort branch nodes by their position or connection order
-        branchNodes.sort((a, b) => a.position.y - b.position.y);
+        const sortedBranchSteps = branchNodes.map(branchNode => ({ ...branchNode.data.step }));
         
         return {
           ...branch,
-          steps: branchNodes.map(n => ({ ...n.data.step }))
+          steps: sortedBranchSteps
         };
       });
     }
 
     return step;
-  };
-
-  // Process nodes in topological order
-  const processedNodes = new Set<string>();
-  
-  const processNode = (nodeId: string) => {
-    if (processedNodes.has(nodeId)) return;
-    
-    const step = traverse(nodeId);
-    if (step && step.type !== 'branchStep') {
-      pipeline.push(step);
-      processedNodes.add(nodeId);
-    }
-  };
-
-  // Start with root nodes and follow edges
-  rootNodes.forEach(node => processNode(node.id));
+  });
 
   return pipeline;
 };

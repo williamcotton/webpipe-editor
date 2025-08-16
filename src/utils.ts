@@ -8,15 +8,15 @@ export const getLanguageForType = (type: string): string => {
     'validate': 'json',
     'cache': 'yaml',
     'log': 'yaml',
-    'curl': 'shell'
+    'fetch': 'text'
   };
   return langMap[type] || 'text';
 };
 
 export const getDefaultCode = (type: string): string => {
   switch (type) {
-    case 'curl':
-      return 'curl -s "https://api.example.com/data"';
+    case 'fetch':
+      return 'https://api.example.com/data';
     case 'jq':
       return '. | { transformed: .data }';
     case 'lua':
@@ -31,7 +31,7 @@ export const getDefaultCode = (type: string): string => {
 };
 
 export const availableOperations = [
-  { type: 'curl', label: 'curl', language: 'shell' },
+  { type: 'fetch', label: 'fetch', language: 'text' },
   { type: 'jq', label: 'jq', language: 'text' },
   { type: 'lua', label: 'lua', language: 'lua' },
   { type: 'handlebars', label: 'handlebars', language: 'handlebars' },

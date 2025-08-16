@@ -12,6 +12,9 @@ interface MainEditorProps {
   selectedElement: SelectedElement | null;
   pipelineSteps: PipelineStep[];
   updateStepCode: (stepId: string, code: string) => void;
+  addStep: (type: string) => void;
+  deleteStep: (stepId: string) => void;
+  updatePipelineStructure: (steps: PipelineStep[]) => void;
 }
 
 export const MainEditor: React.FC<MainEditorProps> = ({
@@ -20,7 +23,10 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   setWebpipeSource,
   selectedElement,
   pipelineSteps,
-  updateStepCode
+  updateStepCode,
+  addStep,
+  deleteStep,
+  updatePipelineStructure
 }) => {
   const getHeaderText = (): string => {
     if (!selectedElement) {
@@ -79,6 +85,9 @@ export const MainEditor: React.FC<MainEditorProps> = ({
         <BoxAndNoodleEditor
           pipelineSteps={pipelineSteps}
           updateStepCode={updateStepCode}
+          addStep={addStep}
+          deleteStep={deleteStep}
+          updatePipelineStructure={updatePipelineStructure}
         />
       ) : selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
         <PipelineEditor

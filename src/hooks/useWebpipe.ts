@@ -38,7 +38,7 @@ export const useWebpipe = () => {
   const [selectedRoute, setSelectedRoute] = useState<string>('');
   const [selectedStep, setSelectedStep] = useState<string>('');
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('source');
+  const [viewMode, setViewMode] = useState<ViewMode>('flow');
   const [parsedData, setParsedData] = useState<any>(null);
   const [serverBaseUrl, setServerBaseUrl] = useState<string>('');
   const [routeTestInputs, setRouteTestInputs] = useState<Record<string, string>>({});
@@ -238,19 +238,76 @@ export const useWebpipe = () => {
   };
 
   const addStep = (type: string) => {
-    const operation = availableOperations.find(op => op.type === type);
-    if (!operation) return;
+    let newStep: PipelineStep;
     
-    const newStep: PipelineStep = {
-      id: Date.now().toString(),
-      type: operation.type,
-      language: operation.language,
-      code: getDefaultCode(operation.type),
-      output: ''
-    };
+    if (type === 'result') {
+      newStep = {
+        id: Date.now().toString(),
+        type: 'result',
+        language: 'text',
+        code: '',
+        output: '',
+        branches: [
+          {
+            id: `branch-ok-${Date.now()}`,
+            branchType: 'ok(200)',
+            statusCode: 200,
+            steps: []
+          },
+          {
+            id: `branch-error-${Date.now() + 1}`,
+            branchType: 'error(500)',
+            statusCode: 500,
+            steps: []
+          }
+        ]
+      };
+    } else {
+      const operation = availableOperations.find(op => op.type === type);
+      if (!operation) return;
+      
+      newStep = {
+        id: Date.now().toString(),
+        type: operation.type,
+        language: operation.language,
+        code: getDefaultCode(operation.type),
+        output: ''
+      };
+    }
     
     const newSteps = [...pipelineSteps, newStep];
     setPipelineSteps(newSteps);
+  };
+
+  const deleteStep = (stepId: string) => {
+    setPipelineSteps(steps => {
+      // Remove the step from the main pipeline
+      const updatedSteps = steps.filter(step => {
+        if (step.id === stepId) {
+          return false; // Remove this step
+        }
+        
+        // Also remove from result block branches
+        if (step.type === 'result' && step.branches) {
+          step.branches = step.branches.map(branch => ({
+            ...branch,
+            steps: branch.steps.filter(branchStep => branchStep.id !== stepId)
+          }));
+        }
+        
+        return true;
+      });
+      
+      pipelineStepsRef.current = updatedSteps;
+      return updatedSteps;
+    });
+    setIsModified(true);
+  };
+
+  const updatePipelineStructure = (newSteps: PipelineStep[]) => {
+    setPipelineSteps(newSteps);
+    pipelineStepsRef.current = newSteps;
+    setIsModified(true);
   };
 
   const updateStepCode = (stepId: string, code: string) => {
@@ -731,6 +788,8 @@ export const useWebpipe = () => {
     parsedData,
     updateWebpipeSource,
     addStep,
+    deleteStep,
+    updatePipelineStructure,
     updateStepCode,
     createNewRoute,
     createNewTest,

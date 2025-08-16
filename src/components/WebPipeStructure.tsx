@@ -58,7 +58,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               style={{
                 padding: '6px 8px',
                 margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'config' && selectedElement?.data === config ? '#0e639c' : '#37373d',
+                backgroundColor: selectedElement?.type === 'config' && selectedElement?.data?.name === config.name ? '#0e639c' : '#37373d',
                 color: '#cccccc',
                 borderRadius: '3px',
                 fontSize: '11px',
@@ -76,7 +76,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 config {config.name}
               </span>
-              {selectedElement?.type === 'config' && selectedElement?.data === config && (
+              {selectedElement?.type === 'config' && selectedElement?.data?.name === config.name && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -130,7 +130,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               style={{
                 padding: '6px 8px',
                 margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'route' && selectedElement?.data === route ? '#0e639c' : '#37373d',
+                backgroundColor: selectedElement?.type === 'route' && selectedElement?.data?.method === route.method && selectedElement?.data?.path === route.path ? '#0e639c' : '#37373d',
                 color: '#cccccc',
                 borderRadius: '3px',
                 fontSize: '11px',
@@ -144,7 +144,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
                 onClick={() => {
                   setSelectedElement({ type: 'route', data: route });
                   setSelectedRoute(`${route.method} ${route.path}`);
-                  setViewMode('all'); // Switch to all view to show pipeline
+                  setViewMode('flow'); // Switch to flow view to show pipeline
                   
                   // Extract pipeline steps from the route
                   const steps = extractRouteSteps(route);
@@ -154,7 +154,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 {route.method} {route.path}
               </span>
-              {selectedElement?.type === 'route' && selectedElement?.data === route && (
+              {selectedElement?.type === 'route' && selectedElement?.data?.method === route.method && selectedElement?.data?.path === route.path && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -208,7 +208,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               style={{
                 padding: '6px 8px',
                 margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'pipeline' && selectedElement?.data === pipeline ? '#0e639c' : '#37373d',
+                backgroundColor: selectedElement?.type === 'pipeline' && selectedElement?.data?.name === pipeline.name ? '#0e639c' : '#37373d',
                 color: '#cccccc',
                 borderRadius: '3px',
                 fontSize: '11px',
@@ -223,7 +223,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
                   const steps = extractPipelineSteps(pipeline, `pipeline-${pipeline.name}`);
                   if (steps.length > 0) {
                     setPipelineSteps(steps);
-                    setViewMode('all');
+                    setViewMode('flow');
                   } else {
                     setViewMode('single');
                   }
@@ -232,7 +232,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 pipeline {pipeline.name}
               </span>
-              {selectedElement?.type === 'pipeline' && selectedElement?.data === pipeline && (
+              {selectedElement?.type === 'pipeline' && selectedElement?.data?.name === pipeline.name && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -286,7 +286,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               style={{
                 padding: '6px 8px',
                 margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'variable' && selectedElement?.data === variable ? '#0e639c' : '#37373d',
+                backgroundColor: selectedElement?.type === 'variable' && selectedElement?.data?.name === variable.name ? '#0e639c' : '#37373d',
                 color: '#cccccc',
                 borderRadius: '3px',
                 fontSize: '11px',
@@ -304,7 +304,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 {variable.varType} {variable.name}
               </span>
-              {selectedElement?.type === 'variable' && selectedElement?.data === variable && (
+              {selectedElement?.type === 'variable' && selectedElement?.data?.name === variable.name && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -358,7 +358,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               style={{
                 padding: '6px 8px',
                 margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'test' && selectedElement?.data === describe ? '#0e639c' : '#37373d',
+                backgroundColor: selectedElement?.type === 'test' && selectedElement?.data?.name === describe.name ? '#0e639c' : '#37373d',
                 color: '#cccccc',
                 borderRadius: '3px',
                 fontSize: '11px',
@@ -376,7 +376,7 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
               >
                 describe "{describe.name}"
               </span>
-              {selectedElement?.type === 'test' && selectedElement?.data === describe && (
+              {selectedElement?.type === 'test' && selectedElement?.data?.name === describe.name && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

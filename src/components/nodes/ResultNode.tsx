@@ -83,7 +83,6 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
             </span>
             <span style={{
               fontSize: '9px',
-              color: '#888',
               backgroundColor: '#0e639c',
               color: 'white',
               padding: '2px 6px',
