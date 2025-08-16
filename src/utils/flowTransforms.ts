@@ -169,23 +169,121 @@ export const autoLayout = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): RFNo
 };
 
 export const flowToPipeline = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): PipelineStep[] => {
-  // For now, just convert nodes to steps in their current order
-  // This preserves basic functionality while we debug the ordering issue
-  const mainPipelineNodes = nodes.filter(node => node.type !== 'branchStep');
-  
-  const pipeline: PipelineStep[] = mainPipelineNodes.map(node => {
-    const step = { ...node.data.step };
+  // Build lookup for quick access
+  const nodeById = new Map<string, RFNode<FlowNodeData>>();
+  nodes.forEach(n => nodeById.set(n.id, n));
+
+  // Separate main nodes (pipelineStep/result) from branch nodes
+  const mainNodes = nodes.filter(n => n.type !== 'branchStep');
+
+  // Build directed graph among main nodes using edges that connect main nodes
+  const mainNodeIds = new Set(mainNodes.map(n => n.id));
+  const outgoing = new Map<string, Set<string>>();
+  const indegree = new Map<string, number>();
+  mainNodes.forEach(n => {
+    outgoing.set(n.id, new Set());
+    indegree.set(n.id, 0);
+  });
+
+  edges.forEach(e => {
+    if (!e.source || !e.target) return;
+    if (!mainNodeIds.has(e.source) || !mainNodeIds.has(e.target)) return;
+    // Ignore edges from result branching handles; those are for branches only
+    if (typeof e.sourceHandle === 'string' && e.sourceHandle.startsWith('branch-')) return;
+    const from = e.source;
+    const to = e.target;
+    if (!outgoing.has(from) || !indegree.has(to)) return;
+    if (!outgoing.get(from)!.has(to)) {
+      outgoing.get(from)!.add(to);
+      indegree.set(to, (indegree.get(to) || 0) + 1);
+    }
+  });
+
+  // Topological order of main nodes; stable by vertical position when ties
+  const queue: RFNode<FlowNodeData>[] = mainNodes
+    .filter(n => (indegree.get(n.id) || 0) === 0)
+    .sort((a, b) => a.position.y - b.position.y);
+  const visited = new Set<string>();
+  const orderedMain: RFNode<FlowNodeData>[] = [];
+
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    if (visited.has(node.id)) continue;
+    visited.add(node.id);
+    orderedMain.push(node);
+    const outs = outgoing.get(node.id) || new Set<string>();
+    const nexts = Array.from(outs)
+      .map(id => nodeById.get(id)!)
+      .filter(Boolean)
+      .sort((a, b) => a.position.y - b.position.y);
+    nexts.forEach(n => {
+      const id = n.id;
+      indegree.set(id, Math.max(0, (indegree.get(id) || 0) - 1));
+      if ((indegree.get(id) || 0) === 0) {
+        queue.push(n);
+      }
+    });
+  }
+
+  // Append any unvisited nodes in stable vertical order
+  mainNodes
+    .filter(n => !visited.has(n.id))
+    .sort((a, b) => a.position.y - b.position.y)
+    .forEach(n => orderedMain.push(n));
+
+  const pipeline: PipelineStep[] = orderedMain.map(node => {
+    const step = { ...(node.data as FlowNodeData).step };
 
     if (node.type === 'result' && step.branches) {
-      // Reconstruct branches
+      // For each branch, order steps by branch-internal edges (fallback: x position)
       step.branches = step.branches.map(branch => {
-        const branchNodes = nodes
-          .filter(n => (n.data as FlowNodeData).branchId === branch.id && n.type === 'branchStep')
-          // ensure stable order by x position (left-to-right)
+        const branchNodes = nodes.filter(n => n.type === 'branchStep' && (n.data as FlowNodeData).branchId === branch.id);
+        const branchIds = new Set(branchNodes.map(n => n.id));
+        const outB = new Map<string, Set<string>>();
+        const inB = new Map<string, number>();
+        branchNodes.forEach(n => {
+          outB.set(n.id, new Set());
+          inB.set(n.id, 0);
+        });
+        edges.forEach(e => {
+          if (!e.source || !e.target) return;
+          if (!branchIds.has(e.source) || !branchIds.has(e.target)) return;
+          if (!outB.get(e.source)!.has(e.target)) {
+            outB.get(e.source)!.add(e.target);
+            inB.set(e.target, (inB.get(e.target) || 0) + 1);
+          }
+        });
+        // Kahn's algorithm within branch; tie-break by x position
+        const q: RFNode<FlowNodeData>[] = branchNodes
+          .filter(n => (inB.get(n.id) || 0) === 0)
           .sort((a, b) => a.position.x - b.position.x);
-        
-        const sortedBranchSteps = branchNodes.map(branchNode => ({ ...((branchNode.data as FlowNodeData).step) }));
-        
+        const seen = new Set<string>();
+        const orderedBranch: RFNode<FlowNodeData>[] = [];
+        while (q.length > 0) {
+          const n = q.shift()!;
+          if (seen.has(n.id)) continue;
+          seen.add(n.id);
+          orderedBranch.push(n);
+          const outs = outB.get(n.id) || new Set<string>();
+          const nexts = Array.from(outs)
+            .map(id => nodeById.get(id)!)
+            .filter(Boolean)
+            .sort((a, b) => a.position.x - b.position.x);
+          nexts.forEach(nn => {
+            const id = nn.id;
+            inB.set(id, Math.max(0, (inB.get(id) || 0) - 1));
+            if ((inB.get(id) || 0) === 0) {
+              q.push(nn);
+            }
+          });
+        }
+        // Append any remaining by x position
+        branchNodes
+          .filter(n => !seen.has(n.id))
+          .sort((a, b) => a.position.x - b.position.x)
+          .forEach(n => orderedBranch.push(n));
+
+        const sortedBranchSteps = orderedBranch.map(bn => ({ ...((bn.data as FlowNodeData).step) }));
         return {
           ...branch,
           steps: sortedBranchSteps

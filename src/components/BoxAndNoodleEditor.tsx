@@ -9,7 +9,9 @@ import {
   Connection,
   BackgroundVariant,
   Node as RFNode,
-  Edge as RFEdge
+  Edge as RFEdge,
+  NodeChange,
+  EdgeChange
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -60,13 +62,29 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     };
   }, [pipelineSteps, updateStepCode]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>(initialEdges);
+  const [nodes, setNodes, baseOnNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
+  const [edges, setEdges, baseOnEdgesChange] = useEdgesState<RFEdge>(initialEdges);
+  const [structureDirty, setStructureDirty] = useState(false);
 
   // Update ref when pipelineSteps changes from outside
   useEffect(() => {
     lastPipelineStepsRef.current = pipelineSteps;
+    setStructureDirty(false);
   }, [pipelineSteps]);
+  const onNodesChange = useCallback((changes: NodeChange<RFNode<FlowNodeData>>[]) => {
+    if (changes.some(c => c.type === 'add' || c.type === 'remove')) {
+      setStructureDirty(true);
+    }
+    baseOnNodesChange(changes);
+  }, [baseOnNodesChange]);
+
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    if (changes.some(c => c.type === 'add' || c.type === 'remove')) {
+      setStructureDirty(true);
+    }
+    baseOnEdgesChange(changes);
+  }, [baseOnEdgesChange]);
+
 
   // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
@@ -103,6 +121,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) => addEdge(params, eds));
+      setStructureDirty(true);
       // If connecting from a result branch handle, convert the target node into a branch step
       const handleId = params.sourceHandle ?? undefined;
       if (params.source && params.target && handleId && handleId.startsWith('branch-')) {
@@ -158,53 +177,38 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     deletedNodes.forEach(node => {
       deleteStep(node.id);
     });
+    setStructureDirty(true);
   }, [deleteStep]);
 
   // Handle edge deletion
   const onEdgesDelete = useCallback((_deletedEdges: RFEdge[]) => {
     // Edge deletion is handled automatically by ReactFlow state
     // The structure change will be picked up by the effect below
+    setStructureDirty(true);
   }, []);
 
   // Effect to sync structural changes back to pipeline state
   useEffect(() => {
-    
-    if (!updatePipelineStructure) {
-      console.log('No updatePipelineStructure function, skipping');
-      return;
-    }
-    
-    // Only update if we have nodes and edges (avoid initial empty state)
-    if (nodes.length === 0 && pipelineSteps.length > 0) {
-      console.log('Empty nodes but pipeline has steps, skipping');
-      return;
-    }
-    
-    // Debounce the update to avoid excessive calls
+    if (!structureDirty) return;
+    if (!updatePipelineStructure) return;
+    if (nodes.length === 0 && pipelineSteps.length > 0) return;
     const timeoutId = setTimeout(() => {
       try {
-        console.log('Converting flow to pipeline...');
         const newPipelineSteps = flowToPipeline(nodes, edges);
-        console.log('Conversion result:', newPipelineSteps.map(s => ({ id: s.id, type: s.type })));
-        
-        // Only update if the structure actually changed
         const currentJson = JSON.stringify(lastPipelineStepsRef.current);
         const newJson = JSON.stringify(newPipelineSteps);
-        
         if (newJson !== currentJson) {
-          console.log('Structure changed, calling updatePipelineStructure');
           lastPipelineStepsRef.current = newPipelineSteps;
           updatePipelineStructure(newPipelineSteps);
-        } else {
-          console.log('No change detected');
         }
       } catch (error) {
         console.warn('Failed to convert flow to pipeline:', error);
+      } finally {
+        setStructureDirty(false);
       }
-    }, 300); // 300ms debounce
-
+    }, 150);
     return () => clearTimeout(timeoutId);
-  }, [nodes, edges, updatePipelineStructure]);
+  }, [structureDirty, nodes, edges, updatePipelineStructure]);
 
   // Custom edge styling based on selection
   const getEdgeStyle = (selected?: boolean) => ({
