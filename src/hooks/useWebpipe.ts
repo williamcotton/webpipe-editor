@@ -347,9 +347,20 @@ export const useWebpipe = () => {
   };
 
   const createNewRoute = () => {
+    // Generate unique route path by checking existing routes
+    let counter = 1;
+    let newPath = '/new-route';
+    
+    if (parsedData && parsedData.routes) {
+      while (parsedData.routes.some((route: any) => route.path === newPath)) {
+        counter++;
+        newPath = `/new-route-${counter}`;
+      }
+    }
+    
     const newRoute = {
       method: 'GET',
-      path: '/new-route',
+      path: newPath,
       pipeline: {
         kind: 'Inline',
         pipeline: {
