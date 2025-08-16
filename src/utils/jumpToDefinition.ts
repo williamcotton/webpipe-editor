@@ -161,6 +161,69 @@ function extractReferencesFromSteps(steps: any[], references: VariableReference[
   }
 }
 
+// Global state for variable definitions
+let globalVariableDefinitions: VariableDefinition[] = [];
+let hoverProviderRegistered = false;
+let hoverStylesInjected = false;
+
+/**
+ * Update global variable definitions
+ */
+export function updateGlobalVariableDefinitions(variableDefinitions: VariableDefinition[]) {
+  globalVariableDefinitions = variableDefinitions;
+}
+
+/**
+ * Register hover provider once globally
+ */
+export function registerHoverProvider(monaco: any) {
+  if (hoverProviderRegistered) return;
+  
+  // Add CSS to ensure hover widgets appear above flow nodes
+  if (typeof document !== 'undefined' && !hoverStylesInjected) {
+    const style = document.createElement('style');
+    style.textContent = `
+      .monaco-hover {
+        z-index: 10000 !important;
+      }
+      .monaco-hover-content {
+        z-index: 10000 !important;
+      }
+      .monaco-editor .suggest-widget {
+        z-index: 10000 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    hoverStylesInjected = true;
+  }
+  
+  monaco.languages.registerHoverProvider('*', {
+    provideHover: (model: any, position: any) => {
+      const variableInfo = getVariableAtPosition(model, position, globalVariableDefinitions);
+      if (variableInfo) {
+        const definition = globalVariableDefinitions.find(def => def.name === variableInfo.variableName);
+        if (definition) {
+          return {
+            range: new monaco.Range(
+              variableInfo.range.startLineNumber,
+              variableInfo.range.startColumn,
+              variableInfo.range.endLineNumber,
+              variableInfo.range.endColumn
+            ),
+            contents: [
+              { value: `**${definition.name}** (${definition.type})` },
+              { value: `\`\`\`${definition.type}\n${definition.value}\n\`\`\`` }
+            ]
+          };
+        }
+      }
+      return null;
+    }
+  });
+  
+  hoverProviderRegistered = true;
+}
+
 /**
  * Check if a word at a given position in Monaco editor is a variable reference
  */

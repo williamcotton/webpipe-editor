@@ -2,7 +2,7 @@ import React, { memo, useRef } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import Editor from '@monaco-editor/react';
 import { FlowNodeData } from '../../types';
-import { getVariableAtPosition, VariableDefinition } from '../../utils/jumpToDefinition';
+import { getVariableAtPosition, VariableDefinition, registerHoverProvider, updateGlobalVariableDefinitions } from '../../utils/jumpToDefinition';
 
 interface BranchStepNodeProps extends NodeProps {
   data: FlowNodeData;
@@ -14,6 +14,10 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
 
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+    
+    // Update global variable definitions and register hover provider once
+    updateGlobalVariableDefinitions(variableDefinitions);
+    registerHoverProvider(monaco);
     
     // Add Ctrl+Click (or Cmd+Click on Mac) handler for jump-to-definition
     editor.onMouseDown((e: any) => {
@@ -28,31 +32,6 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
         }
       }
     });
-    
-    // Add hover provider for variable information
-    monaco.languages.registerHoverProvider('*', {
-      provideHover: (model: any, position: any) => {
-        const variableInfo = getVariableAtPosition(model, position, variableDefinitions);
-        if (variableInfo) {
-          const definition = variableDefinitions.find(def => def.name === variableInfo.variableName);
-          if (definition) {
-            return {
-              range: new monaco.Range(
-                variableInfo.range.startLineNumber,
-                variableInfo.range.startColumn,
-                variableInfo.range.endLineNumber,
-                variableInfo.range.endColumn
-              ),
-              contents: [
-                { value: `**${definition.name}** (${definition.type})` },
-                { value: `\`\`\`${definition.type}\n${definition.value}\n\`\`\`` }
-              ]
-            };
-          }
-        }
-        return null;
-      }
-    });
   };
 
   return (
@@ -61,10 +40,11 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
       backgroundColor: selected ? '#404040' : '#1e1e1e',
       border: selected ? '2px solid #0e639c' : '1px solid #3e3e42',
       borderRadius: '8px',
-      overflow: 'hidden',
+      overflow: 'visible',
       fontSize: '12px',
       boxShadow: selected ? '0 0 0 1px #0e639c' : '0 2px 8px rgba(0,0,0,0.3)',
-      position: 'relative'
+      position: 'relative',
+      zIndex: selected ? 1000 : 100
     }}>
       {/* Input Handle */}
       <Handle
@@ -88,6 +68,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
         padding: '8px 12px',
         backgroundColor: '#2d2d30',
         borderBottom: '1px solid #3e3e42',
+        borderRadius: '8px 8px 0 0',
         color: '#cccccc',
         display: 'flex',
         alignItems: 'center',
@@ -97,7 +78,13 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
       </div>
 
       {/* Code Editor */}
-      <div style={{ height: '250px' }}>
+      <div style={{ 
+        height: '250px',
+        overflow: 'visible',
+        position: 'relative',
+        zIndex: 1,
+        borderRadius: '0 0 8px 8px'
+      }}>
         <Editor
           height="250px"
           language={step.language}
