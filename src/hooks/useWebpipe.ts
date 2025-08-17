@@ -3,7 +3,7 @@ import { parseProgram, prettyPrint } from 'webpipe-js';
 import { PipelineStep, SelectedElement, ViewMode } from '../types';
 import { getDefaultCode, availableOperations, extractStepsFromPipeline } from '../utils';
 import { WebpipeInstance, buildServerUrlFromInstance } from '../utils/processUtils';
-import { extractVariableDefinitions, VariableDefinition } from '../utils/jumpToDefinition';
+import { extractVariableDefinitions, extractPipelineDefinitions, VariableDefinition, PipelineDefinition } from '../utils/jumpToDefinition';
 
 const DEFAULT_CONTENT = [
   '# Test App',
@@ -46,6 +46,7 @@ export const useWebpipe = () => {
   const [lastResponse, setLastResponse] = useState<any>(null);
   const [isUpdatingFromSave, setIsUpdatingFromSave] = useState<boolean>(false);
   const [variableDefinitions, setVariableDefinitions] = useState<VariableDefinition[]>([]);
+  const [pipelineDefinitions, setPipelineDefinitions] = useState<PipelineDefinition[]>([]);
   const [isUpdatingFromExternalChange, setIsUpdatingFromExternalChange] = useState<boolean>(false);
 
   // Sync pipelineSteps state with ref
@@ -67,9 +68,12 @@ export const useWebpipe = () => {
         const parsed = parseProgram(webpipeSource);
         setParsedData(parsed);
         
-        // Extract variable definitions for jump-to-definition functionality
+        // Extract variable and pipeline definitions for jump-to-definition functionality
         const definitions = extractVariableDefinitions(parsed, webpipeSource);
         setVariableDefinitions(definitions);
+        
+        const pipelineDefinitions = extractPipelineDefinitions(parsed, webpipeSource);
+        setPipelineDefinitions(pipelineDefinitions);
         
         // Only auto-select first route if no route is currently selected and not updating from save or external change
         if (parsed && parsed.routes && parsed.routes.length > 0 && !selectedElement && !isUpdatingFromSave && !isUpdatingFromExternalChange) {
@@ -100,6 +104,35 @@ export const useWebpipe = () => {
       setIsUpdatingFromExternalChange(false);
     }
   }, [webpipeSource, selectedElement, isUpdatingFromSave, isUpdatingFromExternalChange]);
+
+  // Update pipeline steps when selectedElement changes
+  useEffect(() => {
+    if (!selectedElement) return;
+    
+    if (selectedElement.type === 'route') {
+      // Extract steps from route pipeline
+      const routeData = selectedElement.data;
+      if (routeData.pipeline?.pipeline?.steps) {
+        const routePrefix = `${routeData.method}-${routeData.path}`;
+        const steps = extractStepsFromPipeline(routeData.pipeline.pipeline.steps, routePrefix);
+        setPipelineSteps(steps);
+        setSelectedRoute(`${routeData.method} ${routeData.path}`);
+      }
+    } else if (selectedElement.type === 'pipeline') {
+      // Extract steps from named pipeline
+      const pipelineData = selectedElement.data;
+      // Check for steps in both possible locations: pipelineData.steps or pipelineData.pipeline.steps
+      const stepsArray = pipelineData.steps || pipelineData.pipeline?.steps;
+      if (stepsArray) {
+        const pipelinePrefix = `pipeline-${pipelineData.name}`;
+        const steps = extractStepsFromPipeline(stepsArray, pipelinePrefix);
+        setPipelineSteps(steps);
+        setSelectedRoute(''); // Clear route selection for pipeline
+      } else {
+        console.log('No steps found in pipeline data');
+      }
+    }
+  }, [selectedElement]);
 
   // Convert pipeline steps back to webpipe format
   const convertStepsToWebpipeFormat = (steps: PipelineStep[]): any[] => {
@@ -864,6 +897,7 @@ export const useWebpipe = () => {
     testRouteGet,
     handleInstanceSelect,
     handleOpenFile,
-    variableDefinitions
+    variableDefinitions,
+    pipelineDefinitions
   };
 };

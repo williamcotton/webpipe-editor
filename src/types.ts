@@ -34,7 +34,9 @@ export interface FlowNodeData {
   updateCode: (code: string) => void;
   branchType?: string;
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  pipelineDefinitions?: Array<{ name: string; steps: any[]; lineNumber?: number }>;
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
+  onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
   pipelineInfo?: { name: string };
   [key: string]: unknown;

@@ -40,7 +40,8 @@ function App() {
     testRouteGet,
     handleInstanceSelect,
     handleOpenFile,
-    variableDefinitions
+    variableDefinitions,
+    pipelineDefinitions
   } = useWebpipe();
 
   // Handle jump-to-definition functionality
@@ -58,9 +59,30 @@ function App() {
       // Switch to single view to show the variable details
       setViewMode('single');
       
-      console.log(`Jumped to variable definition: ${variableName}`);
+      // console.log(`Jumped to variable definition: ${variableName}`);
     } else {
       console.log(`Variable not found: ${variableName}`);
+    }
+  };
+
+  // Handle jump-to-pipeline functionality
+  const handleJumpToPipeline = (pipelineName: string, lineNumber?: number) => {
+    // Find the pipeline in the parsed data and select it
+    const pipeline = parsedData?.pipelines?.find((p: any) => p.name === pipelineName);
+    
+    if (pipeline) {
+      // Select the pipeline element to show it in the sidebar
+      setSelectedElement({
+        type: 'pipeline',
+        data: pipeline
+      });
+      
+      // Switch to flow view to show the pipeline visually
+      setViewMode('flow');
+      
+      // console.log(`Jumped to pipeline definition: ${pipelineName}`);
+    } else {
+      console.log(`Pipeline not found: ${pipelineName}`);
     }
   };
 
@@ -121,7 +143,9 @@ function App() {
             deleteStep={deleteStep}
             updatePipelineStructure={updatePipelineStructure}
             variableDefinitions={variableDefinitions}
+            pipelineDefinitions={pipelineDefinitions}
             onJumpToDefinition={handleJumpToDefinition}
+            onJumpToPipeline={handleJumpToPipeline}
           />
         </div>
       </div>

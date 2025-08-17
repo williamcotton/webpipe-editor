@@ -2,14 +2,14 @@ import React, { memo, useRef, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import Editor from '@monaco-editor/react';
 import { FlowNodeData } from '../../types';
-import { getVariableAtPosition, VariableDefinition, registerHoverProvider, updateGlobalVariableDefinitions } from '../../utils/jumpToDefinition';
+import { getVariableAtPosition, getPipelineAtPosition, VariableDefinition, PipelineDefinition, registerHoverProvider, updateGlobalVariableDefinitions, updateGlobalPipelineDefinitions } from '../../utils/jumpToDefinition';
 
 interface PipelineStepNodeProps extends NodeProps {
   data: FlowNodeData;
 }
 
 export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected }) => {
-  const { step, updateCode, branchType, variableDefinitions = [], onJumpToDefinition } = data;
+  const { step, updateCode, branchType, variableDefinitions = [], pipelineDefinitions = [], onJumpToDefinition, onJumpToPipeline } = data;
   const editorRef = useRef<any>(null);
   
   // Calculate dynamic heights based on content
@@ -37,8 +37,9 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
     
-    // Update global variable definitions and register hover provider once
+    // Update global variable and pipeline definitions and register hover provider once
     updateGlobalVariableDefinitions(variableDefinitions);
+    updateGlobalPipelineDefinitions(pipelineDefinitions);
     registerHoverProvider(monaco);
     
     // Add Ctrl+Click (or Cmd+Click on Mac) handler for jump-to-definition
@@ -46,10 +47,19 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
       if ((e.event.ctrlKey || e.event.metaKey) && e.target.type === 6) { // Type 6 is CONTENT_TEXT
         const position = e.target.position;
         if (position) {
+          // Check for variable references first
           const variableInfo = getVariableAtPosition(editor.getModel(), position, variableDefinitions);
           if (variableInfo && onJumpToDefinition) {
             const definition = variableDefinitions.find(def => def.name === variableInfo.variableName);
             onJumpToDefinition(variableInfo.variableName, definition?.lineNumber);
+            return;
+          }
+          
+          // Check for pipeline references
+          const pipelineInfo = getPipelineAtPosition(editor.getModel(), position, pipelineDefinitions);
+          if (pipelineInfo && onJumpToPipeline) {
+            const definition = pipelineDefinitions.find(def => def.name === pipelineInfo.pipelineName);
+            onJumpToPipeline(pipelineInfo.pipelineName, definition?.lineNumber);
           }
         }
       }

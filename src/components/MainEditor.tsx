@@ -16,7 +16,9 @@ interface MainEditorProps {
   deleteStep: (stepId: string) => void;
   updatePipelineStructure: (steps: PipelineStep[]) => void;
   variableDefinitions: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  pipelineDefinitions?: Array<{ name: string; steps: any[]; lineNumber?: number }>;
   onJumpToDefinition: (variableName: string, lineNumber?: number) => void;
+  onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
 }
 
 export const MainEditor: React.FC<MainEditorProps> = ({
@@ -30,7 +32,9 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   deleteStep,
   updatePipelineStructure,
   variableDefinitions,
-  onJumpToDefinition
+  pipelineDefinitions = [],
+  onJumpToDefinition,
+  onJumpToPipeline
 }) => {
   const getHeaderText = (): string => {
     if (!selectedElement) {
@@ -93,7 +97,9 @@ export const MainEditor: React.FC<MainEditorProps> = ({
           deleteStep={deleteStep}
           updatePipelineStructure={updatePipelineStructure}
           variableDefinitions={variableDefinitions}
+          pipelineDefinitions={pipelineDefinitions}
           onJumpToDefinition={onJumpToDefinition}
+          onJumpToPipeline={onJumpToPipeline}
           routeInfo={selectedElement.type === 'route' ? { method: selectedElement.data.method, path: selectedElement.data.path } : undefined}
           pipelineInfo={selectedElement.type === 'pipeline' ? { name: selectedElement.data.name } : undefined}
         />

@@ -11,6 +11,16 @@ export interface VariableDefinition {
   };
 }
 
+export interface PipelineDefinition {
+  name: string;
+  steps: any[];
+  lineNumber?: number;
+  sourceLocation?: {
+    start: { line: number; column: number };
+    end: { line: number; column: number };
+  };
+}
+
 export interface VariableReference {
   name: string;
   stepType: string;
@@ -48,6 +58,34 @@ export function extractVariableDefinitions(parsedData: any, sourceText?: string)
 }
 
 /**
+ * Extract all pipeline definitions from a parsed webpipe document
+ */
+export function extractPipelineDefinitions(parsedData: any, sourceText?: string): PipelineDefinition[] {
+  if (!parsedData?.pipelines) return [];
+  
+  const definitions: PipelineDefinition[] = [];
+  
+  for (const pipeline of parsedData.pipelines) {
+    const definition: PipelineDefinition = {
+      name: pipeline.name,
+      steps: pipeline.steps || []
+    };
+    
+    // If we have source text, try to find the line number where this pipeline is defined
+    if (sourceText && pipeline.name) {
+      const lineNumber = findPipelineDefinitionLine(sourceText, pipeline.name);
+      if (lineNumber !== -1) {
+        definition.lineNumber = lineNumber;
+      }
+    }
+    
+    definitions.push(definition);
+  }
+  
+  return definitions;
+}
+
+/**
  * Find the line number where a variable is defined in the source text
  */
 export function findVariableDefinitionLine(sourceText: string, variableName: string, variableType?: string): number {
@@ -60,6 +98,31 @@ export function findVariableDefinitionLine(sourceText: string, variableName: str
     const patterns = [
       new RegExp(`^${variableType || '\\w+'}\\s+${variableName}\\s*=`),
       new RegExp(`^${variableName}\\s*=`), // fallback without type
+    ];
+    
+    for (const pattern of patterns) {
+      if (pattern.test(line)) {
+        return i + 1; // Convert to 1-based line numbering
+      }
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * Find the line number where a pipeline is defined in the source text
+ */
+export function findPipelineDefinitionLine(sourceText: string, pipelineName: string): number {
+  const lines = sourceText.split('\n');
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Look for patterns like: "pipeline pipelineName { ... }"
+    const patterns = [
+      new RegExp(`^pipeline\\s+${pipelineName}\\s*\\{`),
+      new RegExp(`^${pipelineName}:\\s*pipeline`), // alternative syntax
     ];
     
     for (const pattern of patterns) {
@@ -102,10 +165,45 @@ export function detectVariableReference(text: string, availableVariables: Variab
 }
 
 /**
+ * Check if a given text contains a pipeline reference
+ */
+export function detectPipelineReference(text: string, availablePipelines: PipelineDefinition[]): string | null {
+  if (!text || !availablePipelines.length) return null;
+  
+  // Common patterns for pipeline references in webpipe:
+  // - "pipeline: pipelineName"
+  // - Direct references in code
+  
+  for (const pipeline of availablePipelines) {
+    const patterns = [
+      new RegExp(`^pipeline:\\s*${pipeline.name}$`),
+      new RegExp(`^${pipeline.name}$`),
+      // Also check for references within quoted strings or expressions
+      new RegExp(`\\b${pipeline.name}\\b`)
+    ];
+    
+    for (const pattern of patterns) {
+      if (pattern.test(text.trim())) {
+        return pipeline.name;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Get variable definition by name
  */
 export function getVariableDefinition(variableName: string, definitions: VariableDefinition[]): VariableDefinition | null {
   return definitions.find(def => def.name === variableName) || null;
+}
+
+/**
+ * Get pipeline definition by name
+ */
+export function getPipelineDefinition(pipelineName: string, definitions: PipelineDefinition[]): PipelineDefinition | null {
+  return definitions.find(def => def.name === pipelineName) || null;
 }
 
 /**
@@ -161,8 +259,9 @@ function extractReferencesFromSteps(steps: any[], references: VariableReference[
   }
 }
 
-// Global state for variable definitions
+// Global state for variable and pipeline definitions
 let globalVariableDefinitions: VariableDefinition[] = [];
+let globalPipelineDefinitions: PipelineDefinition[] = [];
 let hoverProviderRegistered = false;
 let hoverStylesInjected = false;
 
@@ -171,6 +270,13 @@ let hoverStylesInjected = false;
  */
 export function updateGlobalVariableDefinitions(variableDefinitions: VariableDefinition[]) {
   globalVariableDefinitions = variableDefinitions;
+}
+
+/**
+ * Update global pipeline definitions
+ */
+export function updateGlobalPipelineDefinitions(pipelineDefinitions: PipelineDefinition[]) {
+  globalPipelineDefinitions = pipelineDefinitions;
 }
 
 /**
@@ -199,6 +305,7 @@ export function registerHoverProvider(monaco: any) {
   
   monaco.languages.registerHoverProvider('*', {
     provideHover: (model: any, position: any) => {
+      // Check for variable references first
       const variableInfo = getVariableAtPosition(model, position, globalVariableDefinitions);
       if (variableInfo) {
         const definition = globalVariableDefinitions.find(def => def.name === variableInfo.variableName);
@@ -217,6 +324,30 @@ export function registerHoverProvider(monaco: any) {
           };
         }
       }
+      
+      // Check for pipeline references
+      const pipelineInfo = getPipelineAtPosition(model, position, globalPipelineDefinitions);
+      if (pipelineInfo) {
+        const definition = globalPipelineDefinitions.find(def => def.name === pipelineInfo.pipelineName);
+        if (definition) {
+          const stepsPreview = definition.steps.length > 0 
+            ? `${definition.steps.length} step${definition.steps.length > 1 ? 's' : ''}`
+            : 'No steps';
+          return {
+            range: new monaco.Range(
+              pipelineInfo.range.startLineNumber,
+              pipelineInfo.range.startColumn,
+              pipelineInfo.range.endLineNumber,
+              pipelineInfo.range.endColumn
+            ),
+            contents: [
+              { value: `**${definition.name}** (pipeline)` },
+              { value: `Pipeline with ${stepsPreview}` }
+            ]
+          };
+        }
+      }
+      
       return null;
     }
   });
@@ -247,6 +378,41 @@ export function getVariableAtPosition(
   if (variableDefinition) {
     return {
       variableName: word,
+      range: {
+        startLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endLineNumber: position.lineNumber,
+        endColumn: wordInfo.endColumn
+      }
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Check if a word at a given position in Monaco editor is a pipeline reference
+ */
+export function getPipelineAtPosition(
+  model: any, 
+  position: { lineNumber: number; column: number },
+  availablePipelines: PipelineDefinition[]
+): { pipelineName: string; range: any } | null {
+  if (!model || !position) return null;
+  
+  const line = model.getLineContent(position.lineNumber);
+  const wordInfo = model.getWordAtPosition(position);
+  
+  if (!wordInfo) return null;
+  
+  const word = wordInfo.word;
+  
+  // Check if this word is a known pipeline
+  const pipelineDefinition = availablePipelines.find(def => def.name === word);
+  
+  if (pipelineDefinition) {
+    return {
+      pipelineName: word,
       range: {
         startLineNumber: position.lineNumber,
         startColumn: wordInfo.startColumn,

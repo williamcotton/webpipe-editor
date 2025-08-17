@@ -32,7 +32,9 @@ interface BoxAndNoodleEditorProps {
   deleteStep?: (stepId: string) => void;
   updatePipelineStructure?: (steps: PipelineStep[]) => void;
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
+  pipelineDefinitions?: Array<{ name: string; steps: any[]; lineNumber?: number }>;
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
+  onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
   pipelineInfo?: { name: string };
 }
@@ -52,7 +54,9 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   deleteStep,
   updatePipelineStructure,
   variableDefinitions = [],
+  pipelineDefinitions = [],
   onJumpToDefinition,
+  onJumpToPipeline,
   routeInfo,
   pipelineInfo
 }) => {
@@ -67,12 +71,12 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     visible: false
   });
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo);
     return {
       nodes: autoLayout(flowData.nodes, flowData.edges),
       edges: flowData.edges
     };
-  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo]);
 
   const [nodes, setNodes, baseOnNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
   const [edges, setEdges, baseOnEdgesChange] = useEdgesState<RFEdge>(initialEdges);
@@ -100,7 +104,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
 
   // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo);
     const layoutedNodes = autoLayout(flowData.nodes, flowData.edges);
     
     // Only update if the node structure actually changed (not just edge changes)
@@ -111,7 +115,14 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
                         [...currentNodeIds].some(id => !newNodeIds.has(id)) ||
                         [...newNodeIds].some(id => !currentNodeIds.has(id));
     
-    if (nodesChanged) {
+    // Check if route/pipeline context changed (e.g., jumping from route to pipeline)
+    const hasRouteNode = nodes.some(n => n.type === 'route');
+    const hasPipelineNode = nodes.some(n => n.type === 'pipeline');
+    const newHasRouteNode = layoutedNodes.some(n => n.type === 'route');
+    const newHasPipelineNode = layoutedNodes.some(n => n.type === 'pipeline');
+    const contextChanged = (hasRouteNode !== newHasRouteNode) || (hasPipelineNode !== newHasPipelineNode);
+    
+    if (nodesChanged || contextChanged) {
       // Structural change - update nodes and reset edges
       setNodes(layoutedNodes);
       setEdges(flowData.edges);
@@ -128,7 +139,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         return nextNodes;
       });
     }
-  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -214,7 +225,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
           updatePipelineStructure(newPipelineSteps);
         }
       } catch (error) {
-        console.warn('Failed to convert flow to pipeline:', error);
+        console.warn('Failed to convert flow to spipeline:', error);
       } finally {
         setStructureDirty(false);
       }

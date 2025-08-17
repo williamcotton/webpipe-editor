@@ -48,7 +48,9 @@ export const pipelineToFlow = (
   steps: PipelineStep[],
   updateStepCode: (stepId: string, code: string) => void,
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>,
+  pipelineDefinitions?: Array<{ name: string; steps: any[]; lineNumber?: number }>,
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void,
+  onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void,
   routeInfo?: { method: string; path: string },
   pipelineInfo?: { name: string }
 ): FlowData => {
@@ -74,7 +76,9 @@ export const pipelineToFlow = (
         updateCode: () => {}, // No-op for route nodes
         routeInfo,
         variableDefinitions,
-        onJumpToDefinition
+        pipelineDefinitions,
+        onJumpToDefinition,
+        onJumpToPipeline
       },
       width: NODE_WIDTH,
       height: 60 // Fixed height for route nodes
@@ -83,8 +87,8 @@ export const pipelineToFlow = (
     yOffset += 60 + 50; // Route node height + gap
   }
   
-  // Add pipeline node at the beginning if pipelineInfo is provided (and no routeInfo)
-  if (pipelineInfo && !routeInfo && steps.length > 0) {
+  // Add pipeline node at the beginning if pipelineInfo is provided
+  if (pipelineInfo && steps.length > 0) {
     const pipelineNode: RFNode<FlowNodeData> = {
       id: 'pipeline-node',
       type: 'pipeline',
@@ -99,7 +103,9 @@ export const pipelineToFlow = (
         updateCode: () => {}, // No-op for pipeline nodes
         pipelineInfo,
         variableDefinitions,
-        onJumpToDefinition
+        pipelineDefinitions,
+        onJumpToDefinition,
+        onJumpToPipeline
       },
       width: NODE_WIDTH,
       height: 60 // Fixed height for pipeline nodes
@@ -122,7 +128,9 @@ export const pipelineToFlow = (
           step,
           updateCode: (code: string) => updateStepCode(step.id, code),
           variableDefinitions,
-          onJumpToDefinition
+          pipelineDefinitions,
+          onJumpToDefinition,
+          onJumpToPipeline
         },
         width: NODE_WIDTH,
         height: nodeHeight
@@ -174,7 +182,9 @@ export const pipelineToFlow = (
                 branchId: branch.id,
                 updateCode: (code: string) => updateStepCode(branchStep.id, code),
                 variableDefinitions,
-                onJumpToDefinition
+                pipelineDefinitions,
+                onJumpToDefinition,
+                onJumpToPipeline
               },
               width: NODE_WIDTH,
               height: branchStepHeight
@@ -224,7 +234,9 @@ export const pipelineToFlow = (
           step,
           updateCode: (code: string) => updateStepCode(step.id, code),
           variableDefinitions,
-          onJumpToDefinition
+          pipelineDefinitions,
+          onJumpToDefinition,
+          onJumpToPipeline
         },
         width: NODE_WIDTH,
         height: stepHeight
