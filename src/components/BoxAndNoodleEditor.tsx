@@ -270,6 +270,9 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         .react-flow__controls button:hover svg {
           fill: #ffffff !important;
         }
+        .react-flow__handle.connectionindicator {
+          background-color: #0e639c !important;
+        }
       `}</style>
       <ReactFlow
         nodes={nodes}
