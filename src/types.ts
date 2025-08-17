@@ -33,15 +33,15 @@ export interface FlowNodeData {
   branchId?: string;
   updateCode: (code: string) => void;
   branchType?: string;
-  isFirstNode?: boolean;
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
+  routeInfo?: { method: string; path: string };
   [key: string]: unknown;
 }
 
 export interface FlowNode {
   id: string;
-  type: 'pipelineStep' | 'result' | 'branchStep';
+  type: 'pipelineStep' | 'result' | 'branchStep' | 'route';
   position: { x: number; y: number };
   data: FlowNodeData;
   width?: number;

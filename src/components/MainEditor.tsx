@@ -94,6 +94,7 @@ export const MainEditor: React.FC<MainEditorProps> = ({
           updatePipelineStructure={updatePipelineStructure}
           variableDefinitions={variableDefinitions}
           onJumpToDefinition={onJumpToDefinition}
+          routeInfo={selectedElement.type === 'route' ? { method: selectedElement.data.method, path: selectedElement.data.path } : undefined}
         />
       ) : selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
         <PipelineEditor

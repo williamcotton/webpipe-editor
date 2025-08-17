@@ -48,13 +48,39 @@ export const pipelineToFlow = (
   steps: PipelineStep[],
   updateStepCode: (stepId: string, code: string) => void,
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>,
-  onJumpToDefinition?: (variableName: string, lineNumber?: number) => void
+  onJumpToDefinition?: (variableName: string, lineNumber?: number) => void,
+  routeInfo?: { method: string; path: string }
 ): FlowData => {
   const nodes: RFNode<FlowNodeData>[] = [];
   const edges: RFEdge[] = [];
 
   let yOffset = 0;
   const xBase = 0;
+  
+  // Add route node at the beginning if routeInfo is provided
+  if (routeInfo && steps.length > 0) {
+    const routeNode: RFNode<FlowNodeData> = {
+      id: 'route-node',
+      type: 'route',
+      position: { x: xBase, y: yOffset },
+      data: {
+        step: {
+          id: 'route-node',
+          type: 'route',
+          language: '',
+          code: ''
+        },
+        updateCode: () => {}, // No-op for route nodes
+        routeInfo,
+        variableDefinitions,
+        onJumpToDefinition
+      },
+      width: NODE_WIDTH,
+      height: 60 // Fixed height for route nodes
+    };
+    nodes.push(routeNode);
+    yOffset += 60 + 50; // Route node height + gap
+  }
 
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
@@ -82,6 +108,13 @@ export const pipelineToFlow = (
         edges.push({
           id: `${steps[i - 1].id}-${step.id}`,
           source: steps[i - 1].id,
+          target: step.id
+        });
+      } else if (routeInfo) {
+        // Connect route node to first step
+        edges.push({
+          id: `route-node-${step.id}`,
+          source: 'route-node',
           target: step.id
         });
       }
@@ -176,6 +209,13 @@ export const pipelineToFlow = (
             target: step.id
           });
         }
+      } else if (routeInfo) {
+        // Connect route node to first step
+        edges.push({
+          id: `route-node-${step.id}`,
+          source: 'route-node',
+          target: step.id
+        });
       }
 
       yOffset += stepHeight + 50; // 50px gap between nodes
@@ -220,8 +260,8 @@ export const flowToPipeline = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): 
   const nodeById = new Map<string, RFNode<FlowNodeData>>();
   nodes.forEach(n => nodeById.set(n.id, n));
 
-  // Separate main nodes (pipelineStep/result) from branch nodes
-  const mainNodes = nodes.filter(n => n.type !== 'branchStep');
+  // Separate main nodes (pipelineStep/result) from branch nodes and route nodes
+  const mainNodes = nodes.filter(n => n.type !== 'branchStep' && n.type !== 'route');
 
   // Build directed graph among main nodes using edges that connect main nodes
   const mainNodeIds = new Set(mainNodes.map(n => n.id));
