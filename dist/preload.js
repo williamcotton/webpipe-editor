@@ -21,6 +21,7 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     onFileSave: (callback) => electron_1.ipcRenderer.on('file-save', callback),
     onFileSaveAs: (callback) => electron_1.ipcRenderer.on('file-save-as', callback),
     onFileClose: (callback) => electron_1.ipcRenderer.on('file-close', callback),
+    onFileChangedExternally: (callback) => electron_1.ipcRenderer.on('file-changed-externally', (_event, data) => callback(data)),
     // Remove event listeners
     removeAllListeners: (channel) => electron_1.ipcRenderer.removeAllListeners(channel)
 });

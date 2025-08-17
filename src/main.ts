@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from 'path';
 import { readFile, writeFile } from 'fs/promises';
+import { watch, FSWatcher } from 'fs';
 import { parseProgram, prettyPrint } from 'webpipe-js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -10,6 +11,44 @@ const execAsync = promisify(exec);
 let counter = 0;
 let mainWindow: BrowserWindow | null = null;
 let currentFilePath: string | null = null;
+let fileWatcher: FSWatcher | null = null;
+let lastSaveTime = 0;
+
+function setupFileWatcher(filePath: string) {
+  // Clean up existing watcher
+  if (fileWatcher) {
+    fileWatcher.close();
+    fileWatcher = null;
+  }
+
+  try {
+    fileWatcher = watch(filePath, { persistent: true }, async (eventType) => {
+      if (eventType === 'change' && mainWindow) {
+        try {
+          const now = Date.now();
+          // Skip if we just saved the file (within 500ms) to prevent infinite loops
+          if (now - lastSaveTime < 500) {
+            return;
+          }
+          
+          // Add a small delay to ensure file write is complete
+          setTimeout(async () => {
+            try {
+              const content = await readFile(filePath, 'utf-8');
+              mainWindow?.webContents.send('file-changed-externally', { filePath, content });
+            } catch (error) {
+              console.error('Failed to read changed file:', error);
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error handling file change:', error);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Failed to setup file watcher:', error);
+  }
+}
 
 function createApplicationMenu() {
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -45,6 +84,9 @@ function createApplicationMenu() {
                 currentFilePath = filePath;
                 mainWindow.webContents.send('file-opened', { filePath, content });
                 mainWindow.setTitle(`WebPipe Editor - ${filePath}`);
+                
+                // Setup file watcher for the opened file
+                setupFileWatcher(filePath);
               } catch (error) {
                 dialog.showErrorBox('Error', `Failed to open file: ${error}`);
               }
@@ -169,6 +211,12 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  // Clean up file watcher
+  if (fileWatcher) {
+    fileWatcher.close();
+    fileWatcher = null;
+  }
+  
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -192,6 +240,11 @@ ipcMain.handle('get-counter', () => {
 ipcMain.handle('load-file', async (_event, filePath: string) => {
   try {
     const content = await readFile(filePath, 'utf-8');
+    currentFilePath = filePath;
+    
+    // Setup file watcher for the loaded file
+    setupFileWatcher(filePath);
+    
     return content;
   } catch (error) {
     console.error('Failed to load file:', error);
@@ -201,6 +254,7 @@ ipcMain.handle('load-file', async (_event, filePath: string) => {
 
 ipcMain.handle('save-file', async (_event, filePath: string, content: string) => {
   try {
+    lastSaveTime = Date.now(); // Track save time to prevent watching our own saves
     await writeFile(filePath, content, 'utf-8');
   } catch (error) {
     console.error('Failed to save file:', error);
@@ -246,9 +300,14 @@ ipcMain.handle('show-save-dialog', async (_event, defaultPath?: string) => {
 
 ipcMain.handle('save-file-to-path', async (_event, filePath: string, content: string) => {
   try {
+    lastSaveTime = Date.now(); // Track save time to prevent watching our own saves
     await writeFile(filePath, content, 'utf-8');
     currentFilePath = filePath;
     mainWindow?.setTitle(`WebPipe Editor - ${filePath}`);
+    
+    // Setup file watcher for the saved file
+    setupFileWatcher(filePath);
+    
     return true;
   } catch (error) {
     console.error('Failed to save file:', error);

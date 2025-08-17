@@ -46,6 +46,7 @@ export const useWebpipe = () => {
   const [lastResponse, setLastResponse] = useState<any>(null);
   const [isUpdatingFromSave, setIsUpdatingFromSave] = useState<boolean>(false);
   const [variableDefinitions, setVariableDefinitions] = useState<VariableDefinition[]>([]);
+  const [isUpdatingFromExternalChange, setIsUpdatingFromExternalChange] = useState<boolean>(false);
 
   // Sync pipelineSteps state with ref
   useEffect(() => {
@@ -70,8 +71,8 @@ export const useWebpipe = () => {
         const definitions = extractVariableDefinitions(parsed, webpipeSource);
         setVariableDefinitions(definitions);
         
-        // Only auto-select first route if no route is currently selected and not updating from save
-        if (parsed && parsed.routes && parsed.routes.length > 0 && !selectedElement && !isUpdatingFromSave) {
+        // Only auto-select first route if no route is currently selected and not updating from save or external change
+        if (parsed && parsed.routes && parsed.routes.length > 0 && !selectedElement && !isUpdatingFromSave && !isUpdatingFromExternalChange) {
           const firstRoute = parsed.routes[0];
           
           let steps: PipelineStep[] = [];
@@ -91,11 +92,14 @@ export const useWebpipe = () => {
     
     parseWebpipeSource();
     
-    // Reset the flag after parsing
+    // Reset the flags after parsing
     if (isUpdatingFromSave) {
       setIsUpdatingFromSave(false);
     }
-  }, [webpipeSource, selectedElement, isUpdatingFromSave]);
+    if (isUpdatingFromExternalChange) {
+      setIsUpdatingFromExternalChange(false);
+    }
+  }, [webpipeSource, selectedElement, isUpdatingFromSave, isUpdatingFromExternalChange]);
 
   // Convert pipeline steps back to webpipe format
   const convertStepsToWebpipeFormat = (steps: PipelineStep[]): any[] => {
@@ -688,6 +692,39 @@ export const useWebpipe = () => {
     setViewMode('source');
   };
 
+  const handleFileChangedExternally = (data: { filePath: string; content: string }) => {
+    if (data.filePath === currentFilePath) {
+      setIsUpdatingFromExternalChange(true);
+      setWebpipeSource(data.content);
+      setIsModified(false); // External changes are considered saved
+      
+      // If we have a selected route, we need to refresh its pipeline steps after parsing
+      if (selectedElement?.type === 'route') {
+        // The useEffect for webpipeSource will handle re-parsing, but we need to refresh pipeline steps
+        // This will be handled in the parsing effect, but we need to trigger pipeline update
+        setTimeout(() => {
+          try {
+            const parsed = parseProgram(data.content);
+            if (parsed?.routes) {
+              const currentRoute = parsed.routes.find((route: any) => 
+                route.method === selectedElement.data.method && route.path === selectedElement.data.path
+              );
+              
+              if (currentRoute && (currentRoute.pipeline as any)?.pipeline?.steps) {
+                const routePrefix = `${currentRoute.method}-${currentRoute.path}`;
+                const updatedSteps = extractStepsFromPipeline((currentRoute.pipeline as any).pipeline.steps, routePrefix);
+                setPipelineSteps(updatedSteps);
+                pipelineStepsRef.current = updatedSteps;
+              }
+            }
+          } catch (error) {
+            console.error('Failed to refresh pipeline steps after external change:', error);
+          }
+        }, 50); // Small delay to ensure webpipeSource is updated first
+      }
+    }
+  };
+
   const handleSave = async () => {
     if (!window.electronAPI) return;
 
@@ -747,6 +784,7 @@ export const useWebpipe = () => {
     window.electronAPI.onFileSave(handleSave);
     window.electronAPI.onFileSaveAs(handleSaveAs);
     window.electronAPI.onFileClose(handleClose);
+    window.electronAPI.onFileChangedExternally(handleFileChangedExternally);
 
     return () => {
       window.electronAPI.removeAllListeners('file-new');
@@ -754,6 +792,7 @@ export const useWebpipe = () => {
       window.electronAPI.removeAllListeners('file-save');
       window.electronAPI.removeAllListeners('file-save-as');
       window.electronAPI.removeAllListeners('file-close');
+      window.electronAPI.removeAllListeners('file-changed-externally');
     };
   }, [currentFilePath, isModified, webpipeSource]);
 

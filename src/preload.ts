@@ -24,6 +24,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFileSave: (callback: () => void) => ipcRenderer.on('file-save', callback),
   onFileSaveAs: (callback: () => void) => ipcRenderer.on('file-save-as', callback),
   onFileClose: (callback: () => void) => ipcRenderer.on('file-close', callback),
+  onFileChangedExternally: (callback: (data: { filePath: string; content: string }) => void) => 
+    ipcRenderer.on('file-changed-externally', (_event, data) => callback(data)),
   
   // Remove event listeners
   removeAllListeners: (channel: string) => ipcRenderer.removeAllListeners(channel)
@@ -60,6 +62,7 @@ declare global {
       onFileSave: (callback: () => void) => void;
       onFileSaveAs: (callback: () => void) => void;
       onFileClose: (callback: () => void) => void;
+      onFileChangedExternally: (callback: (data: { filePath: string; content: string }) => void) => void;
       
       // Remove event listeners
       removeAllListeners: (channel: string) => void;
