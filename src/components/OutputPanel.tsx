@@ -39,24 +39,38 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
             color: '#000000',
             borderRadius: '4px',
             overflow: 'auto',
-            height: '100%'
+            flex: 1,
+            minHeight: 0
           }}
           dangerouslySetInnerHTML={{ __html: body }}
         />
       );
     }
 
-    const { url, ok, status, statusText, error } = lastResponse;
     return (
-      <pre style={{ margin: 0, color: '#d4d4d4', whiteSpace: 'pre-wrap' }}>
-        {JSON.stringify({ url, ok, status, statusText, headers, body, error }, null, 2)}
+      <pre style={{ 
+        margin: 0, 
+        color: '#d4d4d4', 
+        whiteSpace: 'pre-wrap',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto'
+      }}>
+        {JSON.stringify(body, null, 2)}
       </pre>
     );
   };
 
   const renderContent = () => {
     if (!lastResponse) return (
-      <pre style={{ margin: 0, color: '#d4d4d4', whiteSpace: 'pre-wrap' }}>{`// Output will appear here`}</pre>
+      <pre style={{ 
+        margin: 0, 
+        color: '#d4d4d4', 
+        whiteSpace: 'pre-wrap',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto'
+      }}>{`// Output will appear here`}</pre>
     );
     const isHtml = isHtmlResponse(lastResponse.headers, lastResponse.body);
     const selected = mode === 'auto' ? (isHtml ? 'html' : 'json') : mode;
@@ -79,16 +93,15 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
       return renderBody();
     }
     return (
-      <pre style={{ margin: 0, color: '#d4d4d4', whiteSpace: 'pre-wrap' }}>
-        {JSON.stringify({
-          url: lastResponse.url,
-          ok: lastResponse.ok,
-          status: lastResponse.status,
-          statusText: lastResponse.statusText,
-          headers: lastResponse.headers,
-          body: lastResponse.body,
-          error: lastResponse.error
-        }, null, 2)}
+      <pre style={{ 
+        margin: 0, 
+        color: '#d4d4d4', 
+        whiteSpace: 'pre-wrap',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto'
+      }}>
+        {JSON.stringify(lastResponse.body, null, 2)}
       </pre>
     );
   };
@@ -100,7 +113,8 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
       backgroundColor: '#252526',
       borderLeft: '1px solid #3e3e42',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      height: '100vh'
     }}>
       <div style={{
         padding: '12px 16px',
@@ -170,7 +184,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
           >Live</button>
         </div>
       </div>
-      <div style={{ flex: 1, padding: '16px' }}>
+      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
         <div style={{
           backgroundColor: '#0e0e0e',
           border: '1px solid #3e3e42',
@@ -178,11 +192,46 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
           padding: '12px',
           fontSize: '12px',
           fontFamily: 'monospace',
-          height: '100%',
-          overflow: 'auto'
+          height: 'calc(100vh - 300px)',
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           {renderContent()}
         </div>
+        
+        {lastResponse && (
+          <div style={{
+            backgroundColor: '#1a1a1a',
+            border: '1px solid #3e3e42',
+            borderRadius: '4px',
+            padding: '12px',
+            fontSize: '11px',
+            fontFamily: 'monospace',
+            maxHeight: '150px',
+            overflow: 'auto'
+          }}>
+            <div style={{ color: '#569cd6', marginBottom: '8px', fontWeight: 'bold' }}>Response Info</div>
+            <div style={{ color: '#d4d4d4' }}>
+              <div><span style={{ color: '#9cdcfe' }}>URL:</span> {lastResponse.url}</div>
+              <div><span style={{ color: '#9cdcfe' }}>Status:</span> {lastResponse.status} {lastResponse.statusText}</div>
+              <div><span style={{ color: '#9cdcfe' }}>OK:</span> {lastResponse.ok ? 'true' : 'false'}</div>
+              {lastResponse.error && (
+                <div><span style={{ color: '#f44747' }}>Error:</span> {lastResponse.error}</div>
+              )}
+              {lastResponse.headers && Object.keys(lastResponse.headers).length > 0 && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ color: '#569cd6', marginBottom: '4px' }}>Headers:</div>
+                  {Object.entries(lastResponse.headers).map(([key, value]) => (
+                    <div key={key} style={{ marginLeft: '12px', fontSize: '10px' }}>
+                      <span style={{ color: '#9cdcfe' }}>{key}:</span> {String(value)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
