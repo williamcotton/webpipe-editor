@@ -128,8 +128,6 @@ export const useWebpipe = () => {
         const steps = extractStepsFromPipeline(stepsArray, pipelinePrefix);
         setPipelineSteps(steps);
         setSelectedRoute(''); // Clear route selection for pipeline
-      } else {
-        console.log('No steps found in pipeline data');
       }
     }
   }, [selectedElement]);
@@ -211,6 +209,34 @@ export const useWebpipe = () => {
           return formatted;
         } else {
           console.error('prettyPrint returned empty result');
+          return null;
+        }
+      } else if (parsedData && selectedElement?.type === 'pipeline' && currentSteps.length > 0) {
+        // Handle pipeline updates
+        const updatedData = {
+          ...parsedData,
+          pipelines: parsedData.pipelines.map((pipeline: any) => {
+            // Use pipeline name to match
+            if (pipeline.name === selectedElement.data.name) {
+              return {
+                ...pipeline,
+                pipeline: {
+                  steps: convertStepsToWebpipeFormat(currentSteps)
+                }
+              };
+            }
+            return pipeline;
+          })
+        };
+        
+        const formatted = prettyPrint(updatedData);
+        
+        if (formatted) {
+          setIsUpdatingFromSave(true);
+          setWebpipeSource(formatted);
+          return formatted;
+        } else {
+          console.error('prettyPrint returned empty result for pipeline');
           return null;
         }
       } else {
