@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { FlowNodeData } from '../../types';
 
@@ -9,10 +9,27 @@ interface ResultNodeProps extends NodeProps {
 export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
   const { step } = data;
   const branches = step.branches || [];
+  
+  // Calculate dynamic height based on number of branches
+  const contentHeight = useMemo(() => {
+    // Base height for header and padding
+    const baseHeight = 60;
+    // Height per branch item (including padding and margins)
+    const branchHeight = 42;
+    // Minimum height when no branches
+    const minHeight = baseHeight + 40;
+    
+    if (branches.length === 0) {
+      return minHeight;
+    }
+    
+    return baseHeight + (branches.length * branchHeight) + 20; // 20px for bottom padding
+  }, [branches.length]);
 
   return (
     <div style={{
       width: '350px',
+      height: `${contentHeight}px`,
       backgroundColor: selected ? '#404040' : '#1e1e1e',
       border: selected ? '2px solid #0e639c' : '1px solid #3e3e42',
       borderRadius: '12px',

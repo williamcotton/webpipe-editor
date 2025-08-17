@@ -3,8 +3,41 @@ import { Node as RFNode, Edge as RFEdge } from '@xyflow/react';
 import { PipelineStep, FlowNodeData } from '../types';
 
 const NODE_WIDTH = 350;
-const NODE_HEIGHT = 450;
-const RESULT_NODE_HEIGHT = 200;
+
+// Helper function to calculate dynamic node height
+const calculateNodeHeight = (step: PipelineStep): number => {
+  if (step.type === 'result') {
+    // Result node height based on branch count
+    const baseHeight = 60;
+    const branchHeight = 42;
+    const minHeight = baseHeight + 40;
+    const branches = step.branches || [];
+    
+    if (branches.length === 0) {
+      return minHeight;
+    }
+    
+    return baseHeight + (branches.length * branchHeight) + 20;
+  } else {
+    // Pipeline step height based on content
+    const codeLines = (step.code || '').split('\n').length;
+    const outputLines = (step.output || '').split('\n').length;
+    
+    // Code height: 60px min, 300px max
+    const minCodeHeight = 60;
+    const maxCodeHeight = 300;
+    const lineHeight = 18;
+    const codeHeight = Math.max(minCodeHeight, Math.min(maxCodeHeight, codeLines * lineHeight + 20));
+    
+    // Output height: 40px min, 150px max  
+    const minOutputHeight = 40;
+    const maxOutputHeight = 150;
+    const outputHeight = Math.max(minOutputHeight, Math.min(maxOutputHeight, outputLines * lineHeight + 20));
+    
+    // Header height + code height + output height + padding
+    return 40 + codeHeight + outputHeight + 10;
+  }
+};
 
 export interface FlowData {
   nodes: RFNode<FlowNodeData>[];
@@ -28,6 +61,7 @@ export const pipelineToFlow = (
     
     if (step.type === 'result') {
       // Create result node
+      const nodeHeight = calculateNodeHeight(step);
       const resultNode: RFNode<FlowNodeData> = {
         id: step.id,
         type: 'result',
@@ -39,7 +73,7 @@ export const pipelineToFlow = (
           onJumpToDefinition
         },
         width: NODE_WIDTH,
-        height: RESULT_NODE_HEIGHT
+        height: nodeHeight
       };
       nodes.push(resultNode);
 
@@ -61,12 +95,13 @@ export const pipelineToFlow = (
           const branchStartY = yOffset + 50; // Small offset from result node top
           
           branch.steps.forEach((branchStep, stepIndex) => {
+            const branchStepHeight = calculateNodeHeight(branchStep);
             const branchNode: RFNode<FlowNodeData> = {
               id: branchStep.id,
               type: 'branchStep',
               position: { 
                 x: resultNodeRightX + stepIndex * (NODE_WIDTH + 50), // Horizontal flow for branch steps
-                y: branchStartY + branchIndex * (NODE_HEIGHT + 100) // Vertical offset per branch
+                y: branchStartY + branchIndex * (branchStepHeight + 100) // Vertical offset per branch
               },
               data: {
                 step: branchStep,
@@ -76,7 +111,7 @@ export const pipelineToFlow = (
                 onJumpToDefinition
               },
               width: NODE_WIDTH,
-              height: NODE_HEIGHT
+              height: branchStepHeight
             };
             nodes.push(branchNode);
 
@@ -105,12 +140,16 @@ export const pipelineToFlow = (
 
         // Update yOffset to account for branch layout
         const maxBranchCount = step.branches.length;
-        yOffset += RESULT_NODE_HEIGHT + (maxBranchCount * (NODE_HEIGHT + 100)) + 100;
+        const maxBranchHeight = Math.max(...step.branches.map(branch => 
+          Math.max(...branch.steps.map(s => calculateNodeHeight(s)))
+        ));
+        yOffset += nodeHeight + (maxBranchCount * (maxBranchHeight + 100)) + 100;
       } else {
-        yOffset += RESULT_NODE_HEIGHT + 100;
+        yOffset += nodeHeight + 50; // 50px gap between nodes
       }
     } else {
       // Create regular pipeline step node
+      const stepHeight = calculateNodeHeight(step);
       const stepNode: RFNode<FlowNodeData> = {
         id: step.id,
         type: 'pipelineStep',
@@ -122,7 +161,7 @@ export const pipelineToFlow = (
           onJumpToDefinition
         },
         width: NODE_WIDTH,
-        height: NODE_HEIGHT
+        height: stepHeight
       };
       nodes.push(stepNode);
 
@@ -139,7 +178,7 @@ export const pipelineToFlow = (
         }
       }
 
-      yOffset += NODE_HEIGHT + 100;
+      yOffset += stepHeight + 50; // 50px gap between nodes
     }
   }
 
@@ -149,12 +188,12 @@ export const pipelineToFlow = (
 export const autoLayout = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): RFNode<FlowNodeData>[] => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 150 });
+  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 50 });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { 
       width: node.width || NODE_WIDTH, 
-      height: node.height || NODE_HEIGHT 
+      height: node.height || 200 // fallback height
     });
   });
 
@@ -170,7 +209,7 @@ export const autoLayout = (nodes: RFNode<FlowNodeData>[], edges: RFEdge[]): RFNo
       ...node,
       position: {
         x: nodeWithPosition.x - (node.width || NODE_WIDTH) / 2,
-        y: nodeWithPosition.y - (node.height || NODE_HEIGHT) / 2,
+        y: nodeWithPosition.y - (node.height || 200) / 2,
       },
     };
   });

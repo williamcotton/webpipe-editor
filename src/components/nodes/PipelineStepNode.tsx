@@ -1,4 +1,4 @@
-import React, { memo, useRef } from 'react';
+import React, { memo, useRef, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import Editor from '@monaco-editor/react';
 import { FlowNodeData } from '../../types';
@@ -11,6 +11,28 @@ interface PipelineStepNodeProps extends NodeProps {
 export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected }) => {
   const { step, updateCode, branchType, variableDefinitions = [], onJumpToDefinition } = data;
   const editorRef = useRef<any>(null);
+  
+  // Calculate dynamic heights based on content
+  const { codeHeight, outputHeight } = useMemo(() => {
+    const codeLines = (step.code || '').split('\n').length;
+    const outputLines = (step.output || '').split('\n').length;
+    
+    // Minimum height: 60px, Maximum height: 300px for code
+    const minCodeHeight = 60;
+    const maxCodeHeight = 300;
+    const lineHeight = 18;
+    const calculatedCodeHeight = Math.max(minCodeHeight, Math.min(maxCodeHeight, codeLines * lineHeight + 20));
+    
+    // Minimum height: 40px, Maximum height: 150px for output
+    const minOutputHeight = 40;
+    const maxOutputHeight = 150;
+    const calculatedOutputHeight = Math.max(minOutputHeight, Math.min(maxOutputHeight, outputLines * lineHeight + 20));
+    
+    return {
+      codeHeight: calculatedCodeHeight,
+      outputHeight: calculatedOutputHeight
+    };
+  }, [step.code, step.output]);
 
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
@@ -90,13 +112,13 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
 
       {/* Code Editor */}
       <div style={{ 
-        height: '250px',
+        height: `${codeHeight}px`,
         overflow: 'visible',
         position: 'relative',
         zIndex: 1
       }}>
         <Editor
-          height="250px"
+          height={`${codeHeight}px`}
           language={step.language}
           value={step.code}
           onChange={(value) => updateCode(value || '')}
@@ -121,14 +143,14 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
 
       {/* Output Panel */}
       <div style={{
-        height: '120px',
+        height: `${outputHeight}px`,
         backgroundColor: '#0e0e0e',
         borderTop: '1px solid #3e3e42',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
       }}>
         <Editor
-          height="120px"
+          height={`${outputHeight}px`}
           language="json"
           value={step.output || '// Output will appear here'}
           theme="vs-dark"
