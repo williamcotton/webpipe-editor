@@ -1,3 +1,9 @@
+/* Reset default browser styles */
+body {
+  margin: 0;
+  padding: 0;
+}
+
 @font-face {
   font-family: 'Liga Menlo';
   src: url('./LigaMenlo-Regular.woff') format('woff');
