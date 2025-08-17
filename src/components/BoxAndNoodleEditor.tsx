@@ -19,6 +19,7 @@ import { PipelineStepNode } from './nodes/PipelineStepNode';
 import { ResultNode } from './nodes/ResultNode';
 import { BranchStepNode } from './nodes/BranchStepNode';
 import { RouteNode } from './nodes/RouteNode';
+import { PipelineNode } from './nodes/PipelineNode';
 import { FlowContextMenu } from './FlowContextMenu';
 import { PipelineStep, FlowNodeData } from '../types';
 import { pipelineToFlow, autoLayout, flowToPipeline } from '../utils/flowTransforms';
@@ -33,6 +34,7 @@ interface BoxAndNoodleEditorProps {
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
+  pipelineInfo?: { name: string };
 }
 
 const nodeTypes = {
@@ -40,6 +42,7 @@ const nodeTypes = {
   result: ResultNode,
   branchStep: BranchStepNode,
   route: RouteNode,
+  pipeline: PipelineNode,
 };
 
 export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
@@ -50,7 +53,8 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   updatePipelineStructure,
   variableDefinitions = [],
   onJumpToDefinition,
-  routeInfo
+  routeInfo,
+  pipelineInfo
 }) => {
   const lastPipelineStepsRef = useRef<PipelineStep[]>(pipelineSteps);
   const [contextMenu, setContextMenu] = useState<{
@@ -63,12 +67,12 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     visible: false
   });
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo);
     return {
       nodes: autoLayout(flowData.nodes, flowData.edges),
       edges: flowData.edges
     };
-  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo]);
 
   const [nodes, setNodes, baseOnNodesChange] = useNodesState<RFNode<FlowNodeData>>(initialNodes);
   const [edges, setEdges, baseOnEdgesChange] = useEdgesState<RFEdge>(initialEdges);
@@ -96,7 +100,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
 
   // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo);
     const layoutedNodes = autoLayout(flowData.nodes, flowData.edges);
     
     // Only update if the node structure actually changed (not just edge changes)
@@ -124,7 +128,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         return nextNodes;
       });
     }
-  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo]);
+  }, [pipelineSteps, updateStepCode, variableDefinitions, onJumpToDefinition, routeInfo, pipelineInfo]);
 
   const onConnect = useCallback(
     (params: Connection) => {

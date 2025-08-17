@@ -36,12 +36,13 @@ export interface FlowNodeData {
   variableDefinitions?: Array<{ name: string; type: string; value: string; lineNumber?: number }>;
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
+  pipelineInfo?: { name: string };
   [key: string]: unknown;
 }
 
 export interface FlowNode {
   id: string;
-  type: 'pipelineStep' | 'result' | 'branchStep' | 'route';
+  type: 'pipelineStep' | 'result' | 'branchStep' | 'route' | 'pipeline';
   position: { x: number; y: number };
   data: FlowNodeData;
   width?: number;
