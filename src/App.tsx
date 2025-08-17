@@ -126,7 +126,7 @@ function App() {
         </div>
       </div>
 
-      {/* <OutputPanel lastResponse={lastResponse} /> */}
+      <OutputPanel lastResponse={lastResponse} />
     </div>
   );
 }
