@@ -124,11 +124,27 @@ export const useWebpipeParser = ({
           })
         };
       } else {
+        // Determine the correct configType based on the step type and content
+        let configType = 'backtick';
+        if (step.type === 'pipeline') {
+          configType = 'identifier';
+        } else if (step.code) {
+          // Trim whitespace to handle multiline content properly
+          const trimmedCode = step.code.trim();
+          // Check if it's a simple identifier (no backticks, no whitespace, no special chars)
+          const isSimpleIdentifier = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmedCode);
+          
+          if (isSimpleIdentifier) {
+            configType = 'identifier';
+          }
+          // Otherwise keep 'backtick' for all other content (including multiline backtick content)
+        }
+        
         return {
           kind: 'Regular',
           name: step.type,
           config: step.code,
-          configType: 'backtick'
+          configType: configType
         };
       }
     });
