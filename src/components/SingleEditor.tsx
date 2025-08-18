@@ -7,11 +7,13 @@ import { getLanguageForType } from '../utils';
 interface SingleEditorProps {
   selectedElement: SelectedElement | null;
   pipelineSteps: PipelineStep[];
+  updateElementValue?: (newValue: string) => void;
 }
 
 export const SingleEditor: React.FC<SingleEditorProps> = ({
   selectedElement,
-  pipelineSteps
+  pipelineSteps,
+  updateElementValue
 }) => {
   const getEditorLanguage = (): string => {
     if (!selectedElement) return 'text';
@@ -49,8 +51,13 @@ export const SingleEditor: React.FC<SingleEditorProps> = ({
     }
   };
 
-  const handleChange = (_value: string | undefined) => {
-    // do nothing
+  const handleChange = (value: string | undefined) => {
+    if (!updateElementValue || !value) return;
+    
+    // Only update for editable elements (variables and configs)
+    if (selectedElement?.type === 'variable' || selectedElement?.type === 'config') {
+      updateElementValue(value);
+    }
   };
 
   return (
@@ -64,7 +71,7 @@ export const SingleEditor: React.FC<SingleEditorProps> = ({
         minimap: { enabled: false },
         fontSize: 14,
         automaticLayout: true,
-        readOnly: selectedElement?.type === 'test',
+        readOnly: selectedElement?.type === 'test' || selectedElement?.type === 'route',
         fontFamily: 'Liga Menlo, SF Mono, Monaco, Inconsolata, Roboto Mono, Oxygen Mono, Ubuntu Monospace, Source Code Pro, Fira Mono, Droid Sans Mono, Courier New, monospace',
         fontLigatures: true
       }}

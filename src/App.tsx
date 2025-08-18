@@ -30,6 +30,7 @@ function App() {
     createNewPipeline,
     createNewConfig,
     updateElementName,
+    updateElementValue,
     deleteElement,
     deleteSpecificElement,
     serverBaseUrl,
@@ -146,6 +147,7 @@ function App() {
             pipelineDefinitions={pipelineDefinitions}
             onJumpToDefinition={handleJumpToDefinition}
             onJumpToPipeline={handleJumpToPipeline}
+            updateElementValue={updateElementValue}
           />
         </div>
       </div>

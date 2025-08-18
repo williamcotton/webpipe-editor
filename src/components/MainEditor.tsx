@@ -19,6 +19,7 @@ interface MainEditorProps {
   pipelineDefinitions?: Array<{ name: string; steps: any[]; lineNumber?: number }>;
   onJumpToDefinition: (variableName: string, lineNumber?: number) => void;
   onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
+  updateElementValue?: (newValue: string) => void;
 }
 
 export const MainEditor: React.FC<MainEditorProps> = ({
@@ -34,7 +35,8 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   variableDefinitions,
   pipelineDefinitions = [],
   onJumpToDefinition,
-  onJumpToPipeline
+  onJumpToPipeline,
+  updateElementValue
 }) => {
   const getHeaderText = (): string => {
     if (!selectedElement) {
@@ -112,6 +114,7 @@ export const MainEditor: React.FC<MainEditorProps> = ({
         <SingleEditor
           selectedElement={selectedElement}
           pipelineSteps={pipelineSteps}
+          updateElementValue={updateElementValue}
         />
       )}
     </div>

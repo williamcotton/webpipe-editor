@@ -66,9 +66,11 @@ export function extractPipelineDefinitions(parsedData: any, sourceText?: string)
   const definitions: PipelineDefinition[] = [];
   
   for (const pipeline of parsedData.pipelines) {
+    // Check for steps in both possible locations: pipeline.steps or pipeline.pipeline.steps
+    const stepsArray = pipeline.steps || pipeline.pipeline?.steps || [];
     const definition: PipelineDefinition = {
       name: pipeline.name,
-      steps: pipeline.steps || []
+      steps: stepsArray
     };
     
     // If we have source text, try to find the line number where this pipeline is defined

@@ -636,6 +636,47 @@ export const useWebpipe = () => {
     if (formatted) setWebpipeSource(formatted);
   };
 
+  const updateElementValue = (newValue: string) => {
+    if (!selectedElement || !parsedData) return;
+
+    let updatedData = { ...parsedData };
+    let updatedSelectedElement = { ...selectedElement };
+
+    switch (selectedElement.type) {
+      case 'variable':
+        updatedData.variables = parsedData.variables.map((variable: any) => {
+          if (variable.name === selectedElement.data.name) {
+            const updatedVariable = { ...variable, value: newValue };
+            updatedSelectedElement.data = updatedVariable;
+            return updatedVariable;
+          }
+          return variable;
+        });
+        break;
+        
+      case 'config':
+        // For configs, we might want to update the config data
+        updatedData.configs = parsedData.configs.map((config: any) => {
+          if (config.name === selectedElement.data.name) {
+            const updatedConfig = { ...config, value: newValue };
+            updatedSelectedElement.data = updatedConfig;
+            return updatedConfig;
+          }
+          return config;
+        });
+        break;
+        
+      default:
+        // For other types, don't update - they might have different structures
+        return;
+    }
+
+    setParsedData(updatedData);
+    setSelectedElement(updatedSelectedElement);
+    const formatted = prettyPrint(updatedData);
+    if (formatted) setWebpipeSource(formatted);
+  };
+
   const deleteElement = () => {
     if (!selectedElement || !parsedData) return;
 
@@ -913,6 +954,7 @@ export const useWebpipe = () => {
     createNewPipeline,
     createNewConfig,
     updateElementName,
+    updateElementValue,
     deleteElement,
     deleteSpecificElement,
     serverBaseUrl,
