@@ -2,7 +2,7 @@ import React, { memo, useRef, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import Editor from '@monaco-editor/react';
 import { FlowNodeData } from '../../types';
-import { getVariableAtPosition, getPipelineAtPosition, VariableDefinition, PipelineDefinition, registerHoverProvider, updateGlobalVariableDefinitions, updateGlobalPipelineDefinitions } from '../../utils/jumpToDefinition';
+import { getVariableAtPosition, getPipelineAtPosition, getPartialAtPosition, VariableDefinition, PipelineDefinition, registerHoverProvider, updateGlobalVariableDefinitions, updateGlobalPipelineDefinitions } from '../../utils/jumpToDefinition';
 
 interface BranchStepNodeProps extends NodeProps {
   data: FlowNodeData;
@@ -47,7 +47,15 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
       if ((e.event.ctrlKey || e.event.metaKey) && e.target.type === 6) { // Type 6 is CONTENT_TEXT
         const position = e.target.position;
         if (position) {
-          // Check for variable references first
+          // Check for handlebars partial references first
+          const partialInfo = getPartialAtPosition(editor.getModel(), position, variableDefinitions);
+          if (partialInfo && onJumpToDefinition) {
+            const definition = variableDefinitions.find(def => def.name === partialInfo.partialName && def.type === 'handlebars');
+            onJumpToDefinition(partialInfo.partialName, definition?.lineNumber);
+            return;
+          }
+          
+          // Check for variable references
           const variableInfo = getVariableAtPosition(editor.getModel(), position, variableDefinitions);
           if (variableInfo && onJumpToDefinition) {
             const definition = variableDefinitions.find(def => def.name === variableInfo.variableName);

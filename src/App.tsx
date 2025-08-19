@@ -52,6 +52,8 @@ function App() {
 
   // Temporary flag to disable pipeline jump to Cursor (for variables it still works)
   const DISABLE_PIPELINE_JUMP_TO_CURSOR = true;
+  // Temporary flag to disable partial jump to Cursor (for variables it still works)
+  const DISABLE_PARTIAL_JUMP_TO_CURSOR = false; // Enable partial jump to Cursor
 
   // Handle jump-to-definition functionality
   const handleJumpToDefinition = (variableName: string, lineNumber?: number) => {
@@ -59,7 +61,11 @@ function App() {
     const variable = parsedData?.variables?.find((v: any) => v.name === variableName);
     
     if (variable) {
-      if (jumpToCursor && currentFilePath) {
+      const isHandlebarsPartial = variable.varType === 'handlebars';
+      const shouldJumpToCursor = jumpToCursor && currentFilePath && 
+        (isHandlebarsPartial ? !DISABLE_PARTIAL_JUMP_TO_CURSOR : true);
+      
+      if (shouldJumpToCursor) {
         // Jump to Cursor editor with the file path and line number
         jumpToCursorEditor(currentFilePath, lineNumber);
       } else {

@@ -168,6 +168,26 @@ export function detectVariableReference(text: string, availableVariables: Variab
 }
 
 /**
+ * Check if a given text contains a handlebars partial reference
+ */
+export function detectPartialReference(text: string, availablePartials: VariableDefinition[]): string | null {
+  if (!text || !availablePartials.length) return null;
+  
+  // Look for handlebars partial patterns like {{>partialName}} or {{> partialName}}
+  const partialMatch = text.match(/\{\{\s*>\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/);
+  if (partialMatch) {
+    const partialName = partialMatch[1];
+    // Check if this partial exists in our available partials (handlebars variables)
+    const partial = availablePartials.find(def => def.name === partialName && def.type === 'handlebars');
+    if (partial) {
+      return partialName;
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Check if a given text contains a pipeline reference
  */
 export function detectPipelineReference(text: string, availablePipelines: PipelineDefinition[]): string | null {
@@ -308,7 +328,27 @@ export function registerHoverProvider(monaco: any) {
   
   monaco.languages.registerHoverProvider('*', {
     provideHover: (model: any, position: any) => {
-      // Check for variable references first
+      // Check for handlebars partial references first
+      const partialInfo = getPartialAtPosition(model, position, globalVariableDefinitions);
+      if (partialInfo) {
+        const definition = globalVariableDefinitions.find(def => def.name === partialInfo.partialName && def.type === 'handlebars');
+        if (definition) {
+          return {
+            range: new monaco.Range(
+              partialInfo.range.startLineNumber,
+              partialInfo.range.startColumn,
+              partialInfo.range.endLineNumber,
+              partialInfo.range.endColumn
+            ),
+            contents: [
+              { value: `**${definition.name}** (handlebars partial)` },
+              { value: `\`\`\`handlebars\n${definition.value}\n\`\`\`` }
+            ]
+          };
+        }
+      }
+      
+      // Check for variable references
       const variableInfo = getVariableAtPosition(model, position, globalVariableDefinitions);
       if (variableInfo) {
         const definition = globalVariableDefinitions.find(def => def.name === variableInfo.variableName);
@@ -388,6 +428,48 @@ export function getVariableAtPosition(
         endColumn: wordInfo.endColumn
       }
     };
+  }
+  
+  return null;
+}
+
+/**
+ * Check if a position in Monaco editor is over a handlebars partial reference
+ */
+export function getPartialAtPosition(
+  model: any, 
+  position: { lineNumber: number; column: number },
+  availablePartials: VariableDefinition[]
+): { partialName: string; range: any } | null {
+  if (!model || !position) return null;
+  
+  const line = model.getLineContent(position.lineNumber);
+  
+  // Look for handlebars partial patterns like {{>partialName}} or {{> partialName}}
+  const partialRegex = /\{\{\s*>\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+  let match;
+  
+  while ((match = partialRegex.exec(line)) !== null) {
+    const partialName = match[1];
+    const startColumn = match.index + 1; // Monaco uses 1-based column numbering
+    const endColumn = startColumn + match[0].length;
+    
+    // Check if the cursor position is within this partial reference
+    if (position.column >= startColumn && position.column <= endColumn) {
+      // Check if this partial exists in our available partials (handlebars variables)
+      const partial = availablePartials.find(def => def.name === partialName && def.type === 'handlebars');
+      if (partial) {
+        return {
+          partialName,
+          range: {
+            startLineNumber: position.lineNumber,
+            startColumn: startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: endColumn
+          }
+        };
+      }
+    }
   }
   
   return null;
