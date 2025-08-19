@@ -110,7 +110,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
       </div>
 
       {/* Code Editor */}
-      <div style={{ 
+      <div className="nodrag" style={{ 
         height: `${codeHeight}px`,
         overflow: 'visible',
         position: 'relative',
@@ -142,7 +142,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
       </div>
 
       {/* Output Panel */}
-      <div style={{
+      <div className="nodrag" style={{
         height: `${outputHeight}px`,
         backgroundColor: '#0e0e0e',
         borderTop: '1px solid #3e3e42'
