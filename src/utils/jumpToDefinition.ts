@@ -121,9 +121,10 @@ export function findPipelineDefinitionLine(sourceText: string, pipelineName: str
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    // Look for patterns like: "pipeline pipelineName { ... }"
+    // Look for patterns like: "pipeline pipelineName ="
     const patterns = [
-      new RegExp(`^pipeline\\s+${pipelineName}\\s*\\{`),
+      new RegExp(`^pipeline\\s+${pipelineName}\\s*=`),
+      new RegExp(`^pipeline\\s+${pipelineName}\\s*\\{`), // legacy format with braces
       new RegExp(`^${pipelineName}:\\s*pipeline`), // alternative syntax
     ];
     

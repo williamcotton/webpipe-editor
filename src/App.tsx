@@ -1,9 +1,11 @@
  
+import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { MainEditor } from './components/MainEditor';
 import { OutputPanel } from './components/OutputPanel';
 import { EditableHeader } from './components/EditableHeader';
 import { useWebpipe } from './hooks/useWebpipe';
+import { jumpToCursorEditor } from './utils/processUtils';
 
 function App() {
   const {
@@ -45,20 +47,31 @@ function App() {
     pipelineDefinitions
   } = useWebpipe();
 
+  // State for Jump To Cursor checkbox
+  const [jumpToCursor, setJumpToCursor] = useState(false);
+
+  // Temporary flag to disable pipeline jump to Cursor (for variables it still works)
+  const DISABLE_PIPELINE_JUMP_TO_CURSOR = true;
+
   // Handle jump-to-definition functionality
   const handleJumpToDefinition = (variableName: string, lineNumber?: number) => {
     // Find the variable in the parsed data and select it
     const variable = parsedData?.variables?.find((v: any) => v.name === variableName);
     
     if (variable) {
-      // Select the variable element to show it in the sidebar
-      setSelectedElement({
-        type: 'variable',
-        data: variable
-      });
-      
-      // Switch to single view to show the variable details
-      setViewMode('single');
+      if (jumpToCursor && currentFilePath) {
+        // Jump to Cursor editor with the file path and line number
+        jumpToCursorEditor(currentFilePath, lineNumber);
+      } else {
+        // Select the variable element to show it in the sidebar
+        setSelectedElement({
+          type: 'variable',
+          data: variable
+        });
+        
+        // Switch to single view to show the variable details
+        setViewMode('single');
+      }
       
       // console.log(`Jumped to variable definition: ${variableName}`);
     } else {
@@ -72,14 +85,19 @@ function App() {
     const pipeline = parsedData?.pipelines?.find((p: any) => p.name === pipelineName);
     
     if (pipeline) {
-      // Select the pipeline element to show it in the sidebar
-      setSelectedElement({
-        type: 'pipeline',
-        data: pipeline
-      });
-      
-      // Switch to flow view to show the pipeline visually
-      setViewMode('flow');
+      if (jumpToCursor && currentFilePath && !DISABLE_PIPELINE_JUMP_TO_CURSOR) {
+        // Jump to Cursor editor with the file path and line number
+        jumpToCursorEditor(currentFilePath, lineNumber);
+      } else {
+        // Select the pipeline element to show it in the sidebar
+        setSelectedElement({
+          type: 'pipeline',
+          data: pipeline
+        });
+        
+        // Switch to flow view to show the pipeline visually
+        setViewMode('flow');
+      }
       
       // console.log(`Jumped to pipeline definition: ${pipelineName}`);
     } else {
@@ -114,6 +132,8 @@ function App() {
         setServerBaseUrl={setServerBaseUrl}
         onInstanceSelect={handleInstanceSelect}
         onOpenFile={handleOpenFile}
+        jumpToCursor={jumpToCursor}
+        onJumpToCursorChange={setJumpToCursor}
       />
 
       {/* Main Editor Area */}

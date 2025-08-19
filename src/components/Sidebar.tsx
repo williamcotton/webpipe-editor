@@ -24,6 +24,8 @@ interface SidebarProps {
   setServerBaseUrl: (url: string) => void;
   onInstanceSelect: (instance: WebpipeInstance) => void;
   onOpenFile: (filePath: string) => void;
+  jumpToCursor?: boolean;
+  onJumpToCursorChange?: (enabled: boolean) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -44,7 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   serverBaseUrl,
   setServerBaseUrl,
   onInstanceSelect,
-  onOpenFile
+  onOpenFile,
+  jumpToCursor,
+  onJumpToCursorChange
 }) => {
   return (
     <div style={{
@@ -78,6 +82,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <WebpipeInstanceDropdown
         onInstanceSelect={onInstanceSelect}
         onOpenFile={onOpenFile}
+        jumpToCursor={jumpToCursor}
+        onJumpToCursorChange={onJumpToCursorChange}
       />
       
       <ViewModeButtons

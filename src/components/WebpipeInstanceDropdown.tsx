@@ -4,11 +4,15 @@ import { WebpipeInstance, getRunningWebpipeInstances, buildServerUrlFromInstance
 interface WebpipeInstanceDropdownProps {
   onInstanceSelect: (instance: WebpipeInstance) => void;
   onOpenFile: (filePath: string) => void;
+  jumpToCursor?: boolean;
+  onJumpToCursorChange?: (enabled: boolean) => void;
 }
 
 export const WebpipeInstanceDropdown: React.FC<WebpipeInstanceDropdownProps> = ({
   onInstanceSelect,
-  onOpenFile
+  onOpenFile,
+  jumpToCursor = false,
+  onJumpToCursorChange
 }) => {
   const [instances, setInstances] = useState<WebpipeInstance[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,6 +165,37 @@ export const WebpipeInstanceDropdown: React.FC<WebpipeInstanceDropdownProps> = (
               ))}
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Jump To Cursor Checkbox */}
+      {onJumpToCursorChange && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          marginTop: '8px',
+          padding: '4px 0'
+        }}>
+          <input
+            type="checkbox"
+            id="jump-to-cursor"
+            checked={jumpToCursor}
+            onChange={(e) => onJumpToCursorChange(e.target.checked)}
+            style={{
+              marginRight: '6px',
+              accentColor: '#0e639c'
+            }}
+          />
+          <label 
+            htmlFor="jump-to-cursor"
+            style={{ 
+              color: '#cccccc', 
+              fontSize: '11px',
+              cursor: 'pointer'
+            }}
+          >
+            Jump To Cursor
+          </label>
         </div>
       )}
     </div>

@@ -104,3 +104,21 @@ export const buildServerUrlFromInstance = (instance: WebpipeInstance): string =>
   const port = getPortFromWebpipeInstance(instance);
   return `http://127.0.0.1:${port}`;
 };
+
+export const jumpToCursorEditor = async (filePath: string, lineNumber?: number): Promise<void> => {
+  if (!window.electronAPI) {
+    console.error('Electron API not available');
+    return;
+  }
+
+  try {
+    const line = lineNumber || 1;
+    const column = 1;
+    const command = `cursor -r -g "${filePath}:${line}:${column}"`;
+    
+    await window.electronAPI.executeCommand(command);
+    console.log(`Opened ${filePath}:${line}:${column} in Cursor`);
+  } catch (error) {
+    console.error('Failed to open file in Cursor:', error);
+  }
+};
