@@ -80,14 +80,8 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{
-        padding: '8px 12px',
-        backgroundColor: '#2d2d30',
-        borderBottom: '1px solid #3e3e42',
-        fontSize: '12px',
-        color: '#cccccc'
-      }}>
+    <div className="main-editor">
+      <div className="main-editor-header">
         {getHeaderText()}
       </div>
       

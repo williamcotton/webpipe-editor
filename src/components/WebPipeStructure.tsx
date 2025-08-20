@@ -31,7 +31,6 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
   createNewPipeline,
   createNewConfig,
   deleteSpecificElement,
-  
 }) => {
   const extractPipelineSteps = (pipeline: any, prefix: string): PipelineStep[] => {
     if (!pipeline?.pipeline?.steps) return [];
@@ -47,378 +46,85 @@ export const WebPipeStructure: React.FC<WebPipeStructureProps> = ({
   if (!parsedData) return null;
 
   return (
-    <div style={{ fontSize: '12px' }}>
-      {/* Configs */}
-      {parsedData.configs && parsedData.configs.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Config</h3>
-          {parsedData.configs.map((config: any, index: number) => (
-            <div
-              key={`config-${index}`}
-              style={{
-                padding: '6px 8px',
-                margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'config' && selectedElement?.data?.name === config.name ? '#0e639c' : '#37373d',
-                color: '#cccccc',
-                borderRadius: '3px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span
-                onClick={() => {
-                  setSelectedElement({ type: 'config', data: config });
-                  setViewMode('single');
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                config {config.name}
-              </span>
-              {selectedElement?.type === 'config' && selectedElement?.data?.name === config.name && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSpecificElement('config', config);
-                  }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#cccccc',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontSize: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ff4444';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cccccc';
-                  }}
-                  title="Delete config"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          ))}
-          <AddButton onClick={createNewConfig} label="Add Config" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
+    <div className="structure">
+      {(
+        [
+          { key: 'configs', label: 'Config', addFn: createNewConfig, type: 'config' },
+          { key: 'routes', label: 'Routes', addFn: createNewRoute, type: 'route' },
+          { key: 'pipelines', label: 'Pipelines', addFn: createNewPipeline, type: 'pipeline' },
+          { key: 'variables', label: 'Variables', addFn: createNewVariable, type: 'variable' },
+          { key: 'describes', label: 'Tests', addFn: createNewTest, type: 'test' },
+        ] as const
+      ).map(({ key, label, addFn, type }) => {
+        const items = parsedData[key] || [];
+        return (
+          <div key={key} className="structure-section">
+            <h3 className="structure-title">{label}</h3>
 
-      {/* Add Config button when no configs exist */}
-      {(!parsedData.configs || parsedData.configs.length === 0) && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Config</h3>
-          <AddButton onClick={createNewConfig} label="Add Config" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
+            {items.length > 0 ? (
+              items.map((item: any, index: number) => {
+                const isSelected =
+                  selectedElement?.type === type &&
+                  (type === 'route'
+                    ? selectedElement?.data?.method === item.method &&
+                      selectedElement?.data?.path === item.path
+                    : selectedElement?.data?.name === item.name);
 
-      {/* Routes */}
-      {parsedData.routes && parsedData.routes.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Routes</h3>
-          {parsedData.routes.map((route: any, index: number) => (
-            <div
-              key={`route-${index}`}
-              style={{
-                padding: '6px 8px',
-                margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'route' && selectedElement?.data?.method === route.method && selectedElement?.data?.path === route.path ? '#0e639c' : '#37373d',
-                color: '#cccccc',
-                borderRadius: '3px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '6px'
-              }}
-            >
-              <span
-                onClick={() => {
-                  setSelectedElement({ type: 'route', data: route });
-                  setSelectedRoute(`${route.method} ${route.path}`);
-                  setViewMode('flow'); // Switch to flow view to show pipeline
-                  
-                  // Extract pipeline steps from the route
-                  const steps = extractRouteSteps(route);
-                  setPipelineSteps(steps);
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                {route.method} {route.path}
-              </span>
-              {selectedElement?.type === 'route' && selectedElement?.data?.method === route.method && selectedElement?.data?.path === route.path && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSpecificElement('route', route);
-                  }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#cccccc',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontSize: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ff4444';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cccccc';
-                  }}
-                  title="Delete route"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          ))}
-          <AddButton onClick={createNewRoute} label="Add Route" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
+                return (
+                  <div
+                    key={`${type}-${index}`}
+                    className={`structure-item ${isSelected ? 'selected' : ''}`}
+                  >
+                    <span
+                      className="structure-item-label"
+                      onClick={() => {
+                        setSelectedElement({ type, data: item });
+                        if (type === 'route') {
+                          setSelectedRoute(`${item.method} ${item.path}`);
+                          setViewMode('flow');
+                          setPipelineSteps(extractRouteSteps(item));
+                        } else if (type === 'pipeline') {
+                          const steps = extractPipelineSteps(item, `pipeline-${item.name}`);
+                          if (steps.length > 0) {
+                            setPipelineSteps(steps);
+                            setViewMode('flow');
+                          } else {
+                            setViewMode('single');
+                          }
+                        } else {
+                          setViewMode('single');
+                        }
+                      }}
+                    >
+                      {type === 'config' && `config ${item.name}`}
+                      {type === 'route' && `${item.method} ${item.path}`}
+                      {type === 'pipeline' && `pipeline ${item.name}`}
+                      {type === 'variable' && `${item.varType} ${item.name}`}
+                      {type === 'test' && `describe "${item.name}"`}
+                    </span>
 
-      {/* Add Route button when no routes exist */}
-      {(!parsedData.routes || parsedData.routes.length === 0) && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Routes</h3>
-          <AddButton onClick={createNewRoute} label="Add Route" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
+                    {isSelected && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSpecificElement(type, item);
+                        }}
+                        className="delete-btn"
+                        title={`Delete ${type}`}
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            ) : null}
 
-      {/* Pipelines */}
-      {parsedData.pipelines && parsedData.pipelines.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Pipelines</h3>
-          {parsedData.pipelines.map((pipeline: any, index: number) => (
-            <div
-              key={`pipeline-${index}`}
-              style={{
-                padding: '6px 8px',
-                margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'pipeline' && selectedElement?.data?.name === pipeline.name ? '#0e639c' : '#37373d',
-                color: '#cccccc',
-                borderRadius: '3px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span
-                onClick={() => {
-                  setSelectedElement({ type: 'pipeline', data: pipeline });
-                  const steps = extractPipelineSteps(pipeline, `pipeline-${pipeline.name}`);
-                  if (steps.length > 0) {
-                    setPipelineSteps(steps);
-                    setViewMode('flow');
-                  } else {
-                    setViewMode('single');
-                  }
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                pipeline {pipeline.name}
-              </span>
-              {selectedElement?.type === 'pipeline' && selectedElement?.data?.name === pipeline.name && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSpecificElement('pipeline', pipeline);
-                  }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#cccccc',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontSize: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ff4444';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cccccc';
-                  }}
-                  title="Delete pipeline"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          ))}
-          <AddButton onClick={createNewPipeline} label="Add Pipeline" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
-
-      {/* Add Pipeline button when no pipelines exist */}
-      {(!parsedData.pipelines || parsedData.pipelines.length === 0) && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Pipelines</h3>
-          <AddButton onClick={createNewPipeline} label="Add Pipeline" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
-
-      {/* Variables */}
-      {parsedData.variables && parsedData.variables.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Variables</h3>
-          {parsedData.variables.map((variable: any, index: number) => (
-            <div
-              key={`variable-${index}`}
-              style={{
-                padding: '6px 8px',
-                margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'variable' && selectedElement?.data?.name === variable.name ? '#0e639c' : '#37373d',
-                color: '#cccccc',
-                borderRadius: '3px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span
-                onClick={() => {
-                  setSelectedElement({ type: 'variable', data: variable });
-                  setViewMode('single');
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                {variable.varType} {variable.name}
-              </span>
-              {selectedElement?.type === 'variable' && selectedElement?.data?.name === variable.name && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSpecificElement('variable', variable);
-                  }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#cccccc',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontSize: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ff4444';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cccccc';
-                  }}
-                  title="Delete variable"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          ))}
-          <AddButton onClick={createNewVariable} label="Add Variable" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
-
-      {/* Add Variable button when no variables exist */}
-      {(!parsedData.variables || parsedData.variables.length === 0) && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Variables</h3>
-          <AddButton onClick={createNewVariable} label="Add Variable" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
-
-      {/* Tests */}
-      {parsedData.describes && parsedData.describes.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Tests</h3>
-          {parsedData.describes.map((describe: any, index: number) => (
-            <div
-              key={`test-${index}`}
-              style={{
-                padding: '6px 8px',
-                margin: '2px 0',
-                backgroundColor: selectedElement?.type === 'test' && selectedElement?.data?.name === describe.name ? '#0e639c' : '#37373d',
-                color: '#cccccc',
-                borderRadius: '3px',
-                fontSize: '11px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span
-                onClick={() => {
-                  setSelectedElement({ type: 'test', data: describe });
-                  setViewMode('single');
-                }}
-                style={{ cursor: 'pointer', flex: 1 }}
-              >
-                describe "{describe.name}"
-              </span>
-              {selectedElement?.type === 'test' && selectedElement?.data?.name === describe.name && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSpecificElement('test', describe);
-                  }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: '#cccccc',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontSize: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ff4444';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cccccc';
-                  }}
-                  title="Delete test"
-                >
-                  🗑️
-                </button>
-              )}
-            </div>
-          ))}
-          <AddButton onClick={createNewTest} label="Add Test" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
-
-      {/* Add Test button when no tests exist */}
-      {(!parsedData.describes || parsedData.describes.length === 0) && (
-        <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#cccccc', textTransform: 'uppercase' }}>Tests</h3>
-          <AddButton onClick={createNewTest} label="Add Test" />
-          <div style={{ borderBottom: '1px solid #3e3e42', margin: '8px 0' }}></div>
-        </div>
-      )}
+            <AddButton onClick={addFn} label={`Add ${label}`} />
+            <div className="structure-divider" />
+          </div>
+        );
+      })}
     </div>
   );
 };

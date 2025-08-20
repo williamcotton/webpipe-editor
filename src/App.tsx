@@ -112,13 +112,7 @@ function App() {
   };
 
   return (
-    <div style={{ 
-      height: '100vh', 
-      display: 'flex', 
-      backgroundColor: '#1e1e1e',
-      color: 'white',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
+    <div className="app">
       <Sidebar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -143,7 +137,7 @@ function App() {
       />
 
       {/* Main Editor Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="main-editor-area">
         {/* Header */}
         <EditableHeader
           selectedElement={selectedElement}
@@ -158,7 +152,7 @@ function App() {
         />
 
         {/* Main Content Area */}
-        <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div className="main-editor-content">
           <MainEditor
             viewMode={viewMode}
             webpipeSource={webpipeSource}

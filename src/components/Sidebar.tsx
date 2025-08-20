@@ -48,50 +48,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onInstanceSelect,
   onOpenFile,
   jumpToCursor,
-  onJumpToCursorChange
+  onJumpToCursorChange,
 }) => {
   return (
-    <div style={{
-      width: '200px',
-      minWidth: '200px',
-      flexShrink: 0,
-      backgroundColor: '#252526',
-      borderRight: '1px solid #3e3e42',
-      padding: '16px',
-      overflowY: 'auto'
-    }}>
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', color: '#cccccc', fontSize: '11px', marginBottom: '4px' }}>Server Base URL</label>
+    <div className="sidebar">
+      <div className="sidebar-section">
+        <label className="sidebar-label">Server Base URL</label>
         <input
           type="text"
           placeholder="http://localhost:9080"
           value={serverBaseUrl}
           onChange={(e) => setServerBaseUrl(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '6px 8px',
-            backgroundColor: '#1e1e1e',
-            border: '1px solid #3e3e42',
-            borderRadius: '3px',
-            color: '#cccccc',
-            fontSize: '12px'
-          }}
+          className="sidebar-input"
         />
       </div>
-      
+
       <WebpipeInstanceDropdown
         onInstanceSelect={onInstanceSelect}
         onOpenFile={onOpenFile}
         jumpToCursor={jumpToCursor}
         onJumpToCursorChange={onJumpToCursorChange}
       />
-      
+
       <ViewModeButtons
         viewMode={viewMode}
         setViewMode={setViewMode}
         updateWebpipeSource={updateWebpipeSource}
       />
-      
+
       <WebPipeStructure
         parsedData={parsedData}
         selectedElement={selectedElement}

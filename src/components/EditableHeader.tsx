@@ -100,15 +100,8 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
 
   if (!selectedElement) {
     return (
-      <div style={{
-        padding: '12px 16px',
-        backgroundColor: '#2d2d30',
-        borderBottom: '1px solid #3e3e42',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        <span style={{ fontSize: '14px', color: '#cccccc' }}>
+      <div className="editable-header">
+        <span className="editable-header-title">
           test.wp - WebPipe Editor
         </span>
       </div>
@@ -120,127 +113,73 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
   const name = getElementName(selectedElement);
 
   return (
-    <div style={{
-      padding: '12px 16px',
-      backgroundColor: '#2d2d30',
-      borderBottom: '1px solid #3e3e42',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px'
-    }}>
-      <span style={{ fontSize: '14px', color: '#888' }}>
+    <div className="header">
+      <span className="header-title">
         {currentFilePath ? 
           `${currentFilePath.split('/').pop()}${isModified ? ' •' : ''} - WebPipe Editor` : 
           `Untitled${isModified ? ' •' : ''} - WebPipe Editor`
         }
       </span>
-      <span style={{ color: '#3e3e42' }}>|</span>
-      <div style={{ display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span style={{ fontSize: '14px', color: '#cccccc' }}>
-          {prefix}
-        </span>
-        {isEditing ? (
-          <input
-            type="text"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleSave}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            style={{
-              backgroundColor: '#37373d',
-              border: '1px solid #0e639c',
-              borderRadius: '3px',
-              padding: '2px 6px',
-              fontSize: '14px',
-              color: '#cccccc',
-              outline: 'none',
-              minWidth: '100px'
-            }}
-          />
-        ) : (
-          <span
-            onClick={handleStartEdit}
-            style={{
-              fontSize: '14px',
-              color: '#cccccc',
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '3px',
-              transition: 'background-color 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#37373d';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            {name}
-          </span>
-        )}
-          <span style={{ fontSize: '14px', color: '#cccccc' }}>
-            {suffix}
-          </span>
+      <span className="divider">|</span>
+      <div className="header-main">
+        <div className="name-container">
+          <span className="prefix">{prefix}</span>
+          {isEditing ? (
+            <input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              className="name-input"
+            />
+          ) : (
+            <span
+              onClick={handleStartEdit}
+              className="name-display"
+            >
+              {name}
+            </span>
+          )}
+          <span className="suffix">{suffix}</span>
         </div>
+
         {selectedElement?.type === 'route' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="route-test">
             <input
               type="text"
               placeholder={selectedElement.data.path}
-              value={routeTestInputs[`${selectedElement.data.method} ${selectedElement.data.path}`] || selectedElement.data.path}
-              onChange={(e) => setRouteTestInput(`${selectedElement.data.method} ${selectedElement.data.path}`, e.target.value)}
-              title={serverBaseUrl ? `${serverBaseUrl}${selectedElement.data.path}` : 'Enter full URL or path'}
-              style={{
-                minWidth: '160px',
-                backgroundColor: '#1e1e1e',
-                border: '1px solid #3e3e42',
-                borderRadius: '3px',
-                color: '#cccccc',
-                fontSize: '12px',
-                padding: '4px 6px'
-              }}
+              value={
+                routeTestInputs[`${selectedElement.data.method} ${selectedElement.data.path}`] ||
+                selectedElement.data.path
+              }
+              onChange={(e) =>
+                setRouteTestInput(
+                  `${selectedElement.data.method} ${selectedElement.data.path}`,
+                  e.target.value
+                )
+              }
+              title={
+                serverBaseUrl
+                  ? `${serverBaseUrl}${selectedElement.data.path}`
+                  : 'Enter full URL or path'
+              }
+              className="route-input"
             />
             <button
               onClick={() => testRouteGet(selectedElement.data)}
               title="GET route"
-              style={{
-                backgroundColor: '#0e639c',
-                border: 'none',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '6px 10px',
-                borderRadius: '3px',
-                fontSize: '12px'
-              }}
+              className="get-button"
             >
               GET
             </button>
           </div>
         )}
+
         <button
           onClick={onDelete}
-          style={{
-            backgroundColor: 'transparent',
-            border: 'none',
-            color: '#cccccc',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: '3px',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#ff4444';
-            e.currentTarget.style.color = 'white';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#cccccc';
-          }}
+          className="delete-button"
           title="Delete this element"
         >
           🗑️

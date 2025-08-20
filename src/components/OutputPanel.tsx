@@ -6,6 +6,7 @@ interface OutputPanelProps {
 
 export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
   const [mode, setMode] = useState<'auto' | 'html' | 'json' | 'live'>('auto');
+
   const getHeader = (headers: Record<string, string> | undefined, key: string): string | undefined => {
     if (!headers) return undefined;
     if (key in headers) return headers[key];
@@ -34,28 +35,14 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
     if (isHtmlResponse(headers, body) && typeof body === 'string') {
       return (
         <div
-          style={{
-            backgroundColor: '#ffffff',
-            color: '#000000',
-            borderRadius: '4px',
-            overflow: 'auto',
-            flex: 1,
-            minHeight: 0
-          }}
+          className="output-html"
           dangerouslySetInnerHTML={{ __html: body }}
         />
       );
     }
 
     return (
-      <pre style={{ 
-        margin: 0, 
-        color: '#d4d4d4', 
-        whiteSpace: 'pre-wrap',
-        flex: 1,
-        minHeight: 0,
-        overflow: 'auto'
-      }}>
+      <pre className="output-pre">
         {JSON.stringify(body, null, 2)}
       </pre>
     );
@@ -63,168 +50,88 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({ lastResponse }) => {
 
   const renderContent = () => {
     if (!lastResponse) return (
-      <pre style={{ 
-        margin: 0, 
-        color: '#d4d4d4', 
-        whiteSpace: 'pre-wrap',
-        flex: 1,
-        minHeight: 0,
-        overflow: 'auto'
-      }}>{`// Output will appear here`}</pre>
+      <pre className="output-pre">{`// Output will appear here`}</pre>
     );
+
     const isHtml = isHtmlResponse(lastResponse.headers, lastResponse.body);
     const selected = mode === 'auto' ? (isHtml ? 'html' : 'json') : mode;
+
     if (selected === 'live' && canLivePreview) {
-      // Add timestamp to force iframe refresh when response changes
       const timestamp = lastResponse && typeof lastResponse === 'object' && 'timestamp' in lastResponse 
         ? lastResponse.timestamp 
         : Date.now();
-      
+
       return (
         <iframe
           key={`live-${timestamp}-${lastResponse?.url}`}
           src={lastResponse.url}
-          style={{ width: '100%', height: '100%', border: '0', backgroundColor: '#ffffff' }}
+          className="output-iframe"
           sandbox="allow-scripts allow-forms allow-same-origin"
         />
       );
     }
+
     if (selected === 'html') {
       return renderBody();
     }
+
     return (
-      <pre style={{ 
-        margin: 0, 
-        color: '#d4d4d4', 
-        whiteSpace: 'pre-wrap',
-        flex: 1,
-        minHeight: 0,
-        overflow: 'auto'
-      }}>
+      <pre className="output-pre">
         {JSON.stringify(lastResponse.body, null, 2)}
       </pre>
     );
   };
+
   return (
-    <div style={{
-      width: '420px',
-      minWidth: '420px',
-      flexShrink: 0,
-      backgroundColor: '#252526',
-      borderLeft: '1px solid #3e3e42',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh'
-    }}>
-      <div style={{
-        padding: '12px 16px',
-        backgroundColor: '#2d2d30',
-        borderBottom: '1px solid #3e3e42',
-        fontSize: '14px',
-        color: '#cccccc',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '8px'
-      }}>
+    <div className="output-panel">
+      <div className="output-header">
         <span>Output</span>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div className="mode-buttons">
           <button
             onClick={() => setMode('auto')}
             title="Auto"
-            style={{
-              backgroundColor: mode === 'auto' ? '#0e639c' : 'transparent',
-              border: '1px solid #3e3e42',
-              color: '#cccccc',
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '3px',
-              fontSize: '12px'
-            }}
+            className={`mode-button ${mode === 'auto' ? 'active' : ''}`}
           >Auto</button>
           <button
             onClick={() => setMode('json')}
             title="JSON"
-            style={{
-              backgroundColor: mode === 'json' ? '#0e639c' : 'transparent',
-              border: '1px solid #3e3e42',
-              color: '#cccccc',
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '3px',
-              fontSize: '12px'
-            }}
+            className={`mode-button ${mode === 'json' ? 'active' : ''}`}
           >JSON</button>
           <button
             onClick={() => setMode('html')}
             title="Render HTML"
-            style={{
-              backgroundColor: mode === 'html' ? '#0e639c' : 'transparent',
-              border: '1px solid #3e3e42',
-              color: '#cccccc',
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '3px',
-              fontSize: '12px'
-            }}
+            className={`mode-button ${mode === 'html' ? 'active' : ''}`}
           >HTML</button>
           <button
             onClick={() => setMode('live')}
             title={canLivePreview ? 'Live Preview' : 'Live Preview (HTML only)'}
             disabled={!canLivePreview}
-            style={{
-              backgroundColor: mode === 'live' ? '#0e639c' : 'transparent',
-              border: '1px solid #3e3e42',
-              color: canLivePreview ? '#cccccc' : '#777777',
-              cursor: canLivePreview ? 'pointer' : 'not-allowed',
-              padding: '2px 6px',
-              borderRadius: '3px',
-              fontSize: '12px'
-            }}
+            className={`mode-button ${mode === 'live' ? 'active' : ''} ${!canLivePreview ? 'disabled' : ''}`}
           >Live</button>
         </div>
       </div>
-      <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
-        <div style={{
-          backgroundColor: '#0e0e0e',
-          border: '1px solid #3e3e42',
-          borderRadius: '4px',
-          padding: '12px',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          height: 'calc(100vh - 300px)',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+
+      <div className="output-body">
+        <div className="output-content">
           {renderContent()}
         </div>
-        
+
         {lastResponse && (
-          <div style={{
-            backgroundColor: '#1a1a1a',
-            border: '1px solid #3e3e42',
-            borderRadius: '4px',
-            padding: '12px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            maxHeight: '150px',
-            overflow: 'auto'
-          }}>
-            <div style={{ color: '#569cd6', marginBottom: '8px', fontWeight: 'bold' }}>Response Info</div>
-            <div style={{ color: '#d4d4d4' }}>
-              <div><span style={{ color: '#9cdcfe' }}>URL:</span> {lastResponse.url}</div>
-              <div><span style={{ color: '#9cdcfe' }}>Status:</span> {lastResponse.status} {lastResponse.statusText}</div>
-              <div><span style={{ color: '#9cdcfe' }}>OK:</span> {lastResponse.ok ? 'true' : 'false'}</div>
+          <div className="response-info">
+            <div className="response-info-title">Response Info</div>
+            <div className="response-info-content">
+              <div><span className="header-key">URL:</span> {lastResponse.url}</div>
+              <div><span className="header-key">Status:</span> {lastResponse.status} {lastResponse.statusText}</div>
+              <div><span className="header-key">OK:</span> {lastResponse.ok ? 'true' : 'false'}</div>
               {lastResponse.error && (
-                <div><span style={{ color: '#f44747' }}>Error:</span> {lastResponse.error}</div>
+                <div><span className="error-text">Error:</span> {lastResponse.error}</div>
               )}
               {lastResponse.headers && Object.keys(lastResponse.headers).length > 0 && (
-                <div style={{ marginTop: '8px' }}>
-                  <div style={{ color: '#569cd6', marginBottom: '4px' }}>Headers:</div>
+                <div className="headers-section">
+                  <div className="headers-title">Headers:</div>
                   {Object.entries(lastResponse.headers).map(([key, value]) => (
-                    <div key={key} style={{ marginLeft: '12px', fontSize: '10px' }}>
-                      <span style={{ color: '#9cdcfe' }}>{key}:</span> {String(value)}
+                    <div key={key} className="header-item">
+                      <span className="header-key">{key}:</span> {String(value)}
                     </div>
                   ))}
                 </div>

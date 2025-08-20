@@ -252,11 +252,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   }));
 
   return (
-    <div style={{ 
-      height: '100%', 
-      width: '100%',
-      backgroundColor: '#1e1e1e'
-    }}>
+    <div className="box-and-noodle-editor">
       {/* Custom CSS for selected edges and controls */}
       <style>{`
         .react-flow__edge.selected .react-flow__edge-path {
@@ -313,7 +309,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
         minZoom={0.1}
         maxZoom={2}
         defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
-        style={{ backgroundColor: '#1e1e1e' }}
+        className="box-and-noodle-editor-flow"
         proOptions={{ hideAttribution: true }}
       >
         <Background 
@@ -323,10 +319,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
           color="#333"
         />
         <Controls 
-          style={{
-            backgroundColor: '#2d2d30',
-            border: '1px solid #3e3e42',
-          }}
+          className="box-and-noodle-editor-controls"
           showZoom={true}
           showFitView={true}
           showInteractive={false}
