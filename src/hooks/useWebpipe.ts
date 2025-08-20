@@ -71,6 +71,21 @@ export const useWebpipe = () => {
     ) || webpipeSource;
   }, [parser, pipelineSteps, selectedElement, setIsUpdatingFromSave, webpipeSource]);
   
+  // Initialize server testing early so we can use it in file change callback
+  const serverTesting = useServerTesting();
+
+  // Enhanced external file change handler that also re-runs tests
+  const handleExternalFileChangeWithTesting = useCallback((content: string) => {
+    handleExternalFileChange(content);
+    
+    // Auto re-test current route if conditions are met
+    if (selectedElement?.type === 'route' && serverTesting.serverBaseUrl) {
+      setTimeout(() => {
+        serverTesting.testRouteGet(selectedElement.data);
+      }, 200); // Small delay to ensure parsing is complete
+    }
+  }, [handleExternalFileChange, selectedElement, serverTesting]);
+  
   // Initialize file operations
   const fileOperations = useFileOperations({
     webpipeSource,
@@ -79,7 +94,7 @@ export const useWebpipe = () => {
     setViewMode,
     updateWebpipeSource,
     setIsUpdatingFromExternalChange,
-    onExternalFileChange: handleExternalFileChange
+    onExternalFileChange: handleExternalFileChangeWithTesting
   });
   
   // Update pipeline steps setIsModified callback now that file operations is initialized
@@ -94,9 +109,6 @@ export const useWebpipe = () => {
     updateParsedData: parser.updateParsedData,
     setWebpipeSource
   });
-  
-  // Initialize server testing
-  const serverTesting = useServerTesting();
   
   const setWebpipeSourceWithModified = useCallback((source: string) => {
     setWebpipeSource(source);
