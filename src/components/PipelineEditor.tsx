@@ -5,12 +5,14 @@ import { PipelineStep } from '../types';
 interface PipelineEditorProps {
   pipelineSteps: PipelineStep[];
   updateStepCode: (stepId: string, code: string) => void;
+  theme: 'light' | 'dark';
 }
 
 const ResultBlockEditor: React.FC<{
   step: PipelineStep;
   updateStepCode: (stepId: string, code: string) => void;
-}> = ({ step, updateStepCode }) => {
+  theme: 'light' | 'dark';
+}> = ({ step, updateStepCode, theme }) => {
   const [selectedBranchIndex, setSelectedBranchIndex] = useState(0);
 
   if (!step.branches || step.branches.length === 0) {
@@ -46,7 +48,7 @@ const ResultBlockEditor: React.FC<{
                 language={branchStep.language}
                 value={branchStep.code}
                 onChange={(value) => updateStepCode(branchStep.id, value || '')}
-                theme="vs-dark"
+                theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 12,
@@ -66,7 +68,7 @@ const ResultBlockEditor: React.FC<{
                 height="150px"
                 language="json"
                 value={branchStep.output || '// Output will appear here'}
-                theme="vs-dark"
+                theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 options={{
                   readOnly: true,
                   minimap: { enabled: false },
@@ -91,6 +93,7 @@ const ResultBlockEditor: React.FC<{
 export const PipelineEditor: React.FC<PipelineEditorProps> = ({
   pipelineSteps,
   updateStepCode,
+  theme,
 }) => {
   return (
     <div className="pipeline-editor">
@@ -104,7 +107,7 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
           </div>
 
           {step.type === 'result' ? (
-            <ResultBlockEditor step={step} updateStepCode={updateStepCode} />
+            <ResultBlockEditor step={step} updateStepCode={updateStepCode} theme={theme} />
           ) : (
             <div className="step-editors">
               <div className="editor-container">
@@ -113,7 +116,7 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
                   language={step.language}
                   value={step.code}
                   onChange={(value) => updateStepCode(step.id, value || '')}
-                  theme="vs-dark"
+                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
                   options={{
                     minimap: { enabled: false },
                     fontSize: 12,
@@ -133,7 +136,7 @@ export const PipelineEditor: React.FC<PipelineEditorProps> = ({
                   height="150px"
                   language="json"
                   value={step.output || '// Output will appear here'}
-                  theme="vs-dark"
+                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
                   options={{
                     readOnly: true,
                     minimap: { enabled: false },

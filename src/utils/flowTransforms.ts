@@ -52,7 +52,8 @@ export const pipelineToFlow = (
   onJumpToDefinition?: (variableName: string, lineNumber?: number) => void,
   onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void,
   routeInfo?: { method: string; path: string },
-  pipelineInfo?: { name: string }
+  pipelineInfo?: { name: string },
+  theme?: 'light' | 'dark'
 ): FlowData => {
   const nodes: RFNode<FlowNodeData>[] = [];
   const edges: RFEdge[] = [];
@@ -78,7 +79,8 @@ export const pipelineToFlow = (
         variableDefinitions,
         pipelineDefinitions,
         onJumpToDefinition,
-        onJumpToPipeline
+        onJumpToPipeline,
+        theme
       },
       width: NODE_WIDTH,
       height: 60 // Fixed height for route nodes
@@ -105,7 +107,8 @@ export const pipelineToFlow = (
         variableDefinitions,
         pipelineDefinitions,
         onJumpToDefinition,
-        onJumpToPipeline
+        onJumpToPipeline,
+        theme
       },
       width: NODE_WIDTH,
       height: 60 // Fixed height for pipeline nodes
@@ -130,7 +133,8 @@ export const pipelineToFlow = (
           variableDefinitions,
           pipelineDefinitions,
           onJumpToDefinition,
-          onJumpToPipeline
+          onJumpToPipeline,
+          theme
         },
         width: NODE_WIDTH,
         height: nodeHeight
@@ -184,7 +188,8 @@ export const pipelineToFlow = (
                 variableDefinitions,
                 pipelineDefinitions,
                 onJumpToDefinition,
-                onJumpToPipeline
+                onJumpToPipeline,
+                theme
               },
               width: NODE_WIDTH,
               height: branchStepHeight
@@ -236,7 +241,8 @@ export const pipelineToFlow = (
           variableDefinitions,
           pipelineDefinitions,
           onJumpToDefinition,
-          onJumpToPipeline
+          onJumpToPipeline,
+          theme
         },
         width: NODE_WIDTH,
         height: stepHeight

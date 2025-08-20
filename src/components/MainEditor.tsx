@@ -20,6 +20,7 @@ interface MainEditorProps {
   onJumpToDefinition: (variableName: string, lineNumber?: number) => void;
   onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
   updateElementValue?: (newValue: string) => void;
+  theme: 'light' | 'dark';
 }
 
 export const MainEditor: React.FC<MainEditorProps> = ({
@@ -36,7 +37,8 @@ export const MainEditor: React.FC<MainEditorProps> = ({
   pipelineDefinitions = [],
   onJumpToDefinition,
   onJumpToPipeline,
-  updateElementValue
+  updateElementValue,
+  theme
 }) => {
   const getHeaderText = (): string => {
     if (!selectedElement) {
@@ -66,7 +68,7 @@ export const MainEditor: React.FC<MainEditorProps> = ({
         language="webpipe"
         value={webpipeSource}
         onChange={(value) => setWebpipeSource(value || '')}
-        theme="vs-dark"
+        theme={theme === 'dark' ? 'vs-dark' : 'light'}
         options={{
           minimap: { enabled: false },
           fontSize: 14,
@@ -98,17 +100,20 @@ export const MainEditor: React.FC<MainEditorProps> = ({
           onJumpToPipeline={onJumpToPipeline}
           routeInfo={selectedElement.type === 'route' ? { method: selectedElement.data.method, path: selectedElement.data.path } : undefined}
           pipelineInfo={selectedElement.type === 'pipeline' ? { name: selectedElement.data.name } : undefined}
+          theme={theme}
         />
       ) : selectedElement && (selectedElement.type === 'route' || selectedElement.type === 'pipeline') && viewMode === 'all' ? (
         <PipelineEditor
           pipelineSteps={pipelineSteps}
           updateStepCode={updateStepCode}
+          theme={theme}
         />
       ) : (
         <SingleEditor
           selectedElement={selectedElement}
           pipelineSteps={pipelineSteps}
           updateElementValue={updateElementValue}
+          theme={theme}
         />
       )}
     </div>

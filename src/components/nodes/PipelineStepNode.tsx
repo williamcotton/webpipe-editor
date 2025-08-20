@@ -24,6 +24,7 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
     pipelineDefinitions = [],
     onJumpToDefinition,
     onJumpToPipeline,
+    theme = 'dark',
   } = data;
   const editorRef = useRef<any>(null);
 
@@ -94,7 +95,7 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
           value={step.code}
           onChange={(value) => updateCode(value || '')}
           onMount={handleEditorMount}
-          theme="vs-dark"
+          theme={theme === 'dark' ? 'vs-dark' : 'light'}
           options={{
             minimap: { enabled: false },
             fontSize: 11,
@@ -116,7 +117,7 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
           height={`${outputHeight}px`}
           language="json"
           value={step.output || '// Output will appear here'}
-          theme="vs-dark"
+          theme={theme === 'dark' ? 'vs-dark' : 'light'}
           options={{
             readOnly: true,
             minimap: { enabled: false },

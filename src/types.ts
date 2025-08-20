@@ -39,6 +39,7 @@ export interface FlowNodeData {
   onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
   pipelineInfo?: { name: string };
+  theme?: 'light' | 'dark';
   [key: string]: unknown;
 }
 

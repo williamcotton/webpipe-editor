@@ -4,10 +4,14 @@ import { Sidebar } from './components/Sidebar';
 import { MainEditor } from './components/MainEditor';
 import { OutputPanel } from './components/OutputPanel';
 import { EditableHeader } from './components/EditableHeader';
+import { ThemeToggle } from './components/ThemeToggle';
 import { useWebpipe } from './hooks/useWebpipe';
+import { useTheme } from './hooks/useTheme';
 import { jumpToCursorEditor } from './utils/processUtils';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+  
   const {
     webpipeSource,
     setWebpipeSource,
@@ -149,6 +153,8 @@ function App() {
           routeTestInputs={routeTestInputs}
           setRouteTestInput={setRouteTestInput}
           testRouteGet={testRouteGet}
+          theme={theme}
+          onThemeToggle={toggleTheme}
         />
 
         {/* Main Content Area */}
@@ -168,6 +174,7 @@ function App() {
             onJumpToDefinition={handleJumpToDefinition}
             onJumpToPipeline={handleJumpToPipeline}
             updateElementValue={updateElementValue}
+            theme={theme}
           />
         </div>
       </div>

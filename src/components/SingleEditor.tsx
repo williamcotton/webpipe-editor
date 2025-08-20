@@ -8,12 +8,14 @@ interface SingleEditorProps {
   selectedElement: SelectedElement | null;
   pipelineSteps: PipelineStep[];
   updateElementValue?: (newValue: string) => void;
+  theme: 'light' | 'dark';
 }
 
 export const SingleEditor: React.FC<SingleEditorProps> = ({
   selectedElement,
   pipelineSteps,
-  updateElementValue
+  updateElementValue,
+  theme
 }) => {
   const getEditorLanguage = (): string => {
     if (!selectedElement) return 'text';
@@ -66,7 +68,7 @@ export const SingleEditor: React.FC<SingleEditorProps> = ({
       language={getEditorLanguage()}
       value={getEditorValue()}
       onChange={handleChange}
-      theme="vs-dark"
+      theme={theme === 'dark' ? 'vs-dark' : 'light'}
       options={{
         minimap: { enabled: false },
         fontSize: 14,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SelectedElement } from '../types';
+import { ThemeToggle } from './ThemeToggle';
 
 interface EditableHeaderProps {
   selectedElement: SelectedElement | null;
@@ -11,6 +12,8 @@ interface EditableHeaderProps {
   routeTestInputs: Record<string, string>;
   setRouteTestInput: (routeKey: string, value: string) => void;
   testRouteGet: (route: any, overridePathOrUrl?: string) => void;
+  theme: 'light' | 'dark';
+  onThemeToggle: () => void;
 }
 
 export const EditableHeader: React.FC<EditableHeaderProps> = ({
@@ -22,7 +25,9 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
   serverBaseUrl,
   routeTestInputs,
   setRouteTestInput,
-  testRouteGet
+  testRouteGet,
+  theme,
+  onThemeToggle
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -104,6 +109,7 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
         <span className="editable-header-title">
           test.wp - WebPipe Editor
         </span>
+        <ThemeToggle theme={theme} onToggle={onThemeToggle} />
       </div>
     );
   }
@@ -177,6 +183,7 @@ export const EditableHeader: React.FC<EditableHeaderProps> = ({
           </div>
         )}
 
+        <ThemeToggle theme={theme} onToggle={onThemeToggle} />
         <button
           onClick={onDelete}
           className="delete-button"

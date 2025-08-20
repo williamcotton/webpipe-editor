@@ -37,6 +37,7 @@ interface BoxAndNoodleEditorProps {
   onJumpToPipeline?: (pipelineName: string, lineNumber?: number) => void;
   routeInfo?: { method: string; path: string };
   pipelineInfo?: { name: string };
+  theme: 'light' | 'dark';
 }
 
 const nodeTypes = {
@@ -58,7 +59,8 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
   onJumpToDefinition,
   onJumpToPipeline,
   routeInfo,
-  pipelineInfo
+  pipelineInfo,
+  theme
 }) => {
   const lastPipelineStepsRef = useRef<PipelineStep[]>(pipelineSteps);
   const [contextMenu, setContextMenu] = useState<{
@@ -71,7 +73,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
     visible: false
   });
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo, theme);
     return {
       nodes: autoLayout(flowData.nodes, flowData.edges),
       edges: flowData.edges
@@ -104,7 +106,7 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
 
   // Update nodes when pipeline steps change (but preserve existing edges)
   useEffect(() => {
-    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo);
+    const flowData = pipelineToFlow(pipelineSteps, updateStepCode, variableDefinitions, pipelineDefinitions, onJumpToDefinition, onJumpToPipeline, routeInfo, pipelineInfo, theme);
     const layoutedNodes = autoLayout(flowData.nodes, flowData.edges);
     
     // Only update if the node structure actually changed (not just edge changes)
