@@ -71,14 +71,14 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
   };
 
   return (
-    <div className={`branch-node ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} id="input" className="branch-node-handle input" />
+    <div className={`flow-node-base branch-node overflow-visible ${selected ? 'selected' : ''}`}>
+      <Handle type="target" position={Position.Top} id="input" className="flow-node-handle primary input-top" />
 
-      <div className="branch-node-header">
+      <div className="flow-node-header compact">
         <span>{step.type}</span>
       </div>
 
-      <div className="branch-node-code nodrag" style={{ height: `${codeHeight}px` }}>
+      <div className="flow-node-code nodrag" style={{ height: `${codeHeight}px` }}>
         <Editor
           height={`${codeHeight}px`}
           language={step.language}
@@ -104,7 +104,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
         />
       </div>
 
-      <div className="branch-node-output nodrag" style={{ height: `${outputHeight}px` }}>
+      <div className="flow-node-output nodrag" style={{ height: `${outputHeight}px` }}>
         <Editor
           height={`${outputHeight}px`}
           language="json"
@@ -129,7 +129,7 @@ export const BranchStepNode = memo<BranchStepNodeProps>(({ data, selected }) => 
         />
       </div>
 
-      <Handle type="source" position={Position.Bottom} id="output" className="branch-node-handle output" />
+      <Handle type="source" position={Position.Bottom} id="output" className="flow-node-handle primary output-bottom" />
     </div>
   );
 });

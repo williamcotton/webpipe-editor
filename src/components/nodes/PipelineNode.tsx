@@ -14,10 +14,10 @@ export const PipelineNode = memo<PipelineNodeProps>(({ data, selected }) => {
   }
 
   return (
-    <div className={`pipeline-node ${selected ? 'selected' : ''}`}>
+    <div className={`flow-node-base pipeline-node overflow-hidden ${selected ? 'selected' : ''}`}>
       {/* Header */}
-      <div className="pipeline-node-header">
-        <span className="pipeline-node-title">
+      <div className="flow-node-header standard">
+        <span className="flow-node-title">
           Pipeline: {pipelineInfo.name}
         </span>
       </div>
@@ -27,7 +27,7 @@ export const PipelineNode = memo<PipelineNodeProps>(({ data, selected }) => {
         type="source"
         position={Position.Bottom}
         id="output"
-        className="pipeline-node-handle"
+        className="flow-node-handle default output-bottom"
       />
     </div>
   );

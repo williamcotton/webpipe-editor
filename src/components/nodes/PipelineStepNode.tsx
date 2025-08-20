@@ -76,18 +76,18 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
   };
 
   return (
-    <div className={`pipeline-step-node ${selected ? 'selected' : ''}`}>
+    <div className={`flow-node-base pipeline-step-node overflow-visible ${selected ? 'selected' : ''}`}>
       {/* Input Handle */}
-      <Handle type="target" position={Position.Top} id="input" className="pipeline-step-handle input" />
+      <Handle type="target" position={Position.Top} id="input" className="flow-node-handle default input-top" />
 
       {/* Header */}
-      <div className="pipeline-step-header">
+      <div className="flow-node-header compact">
         <span>{step.type}</span>
-        {branchType && <span className="pipeline-step-branch-label">{branchType}</span>}
+        {branchType && <span className="flow-node-branch-label">{branchType}</span>}
       </div>
 
       {/* Code Editor */}
-      <div className="pipeline-step-code nodrag" style={{ height: `${codeHeight}px` }}>
+      <div className="flow-node-code nodrag" style={{ height: `${codeHeight}px` }}>
         <Editor
           height={`${codeHeight}px`}
           language={step.language}
@@ -111,7 +111,7 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
       </div>
 
       {/* Output Panel */}
-      <div className="pipeline-step-output nodrag" style={{ height: `${outputHeight}px` }}>
+      <div className="flow-node-output rounded-bottom nodrag" style={{ height: `${outputHeight}px` }}>
         <Editor
           height={`${outputHeight}px`}
           language="json"
@@ -134,7 +134,7 @@ export const PipelineStepNode = memo<PipelineStepNodeProps>(({ data, selected })
       </div>
 
       {/* Output Handle */}
-      <Handle type="source" position={Position.Bottom} id="output" className="pipeline-step-handle output" />
+      <Handle type="source" position={Position.Bottom} id="output" className="flow-node-handle default output-bottom" />
     </div>
   );
 });

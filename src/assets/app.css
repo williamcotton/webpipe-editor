@@ -717,162 +717,117 @@
   margin: 8px 0;
 }
 
-.branch-node {
+/* Base Node Styles */
+.flow-node-base {
   width: 350px;
   background-color: #1e1e1e;
   border: 1px solid #3e3e42;
   border-radius: 8px;
-  overflow: visible;
   font-size: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   position: relative;
   z-index: 100;
 }
 
-.branch-node.selected {
+.flow-node-base.selected {
   background-color: #404040;
   border: 2px solid #0e639c;
   box-shadow: 0 0 0 1px #0e639c;
   z-index: 1000;
 }
 
-.branch-node-header {
-  padding: 8px 12px;
+.flow-node-base.overflow-visible {
+  overflow: visible;
+}
+
+.flow-node-base.overflow-hidden {
+  overflow: hidden;
+}
+
+/* Node Headers */
+.flow-node-header {
   background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
-  border-radius: 8px 8px 0 0;
   color: #cccccc;
   display: flex;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.flow-node-header.compact {
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
   align-items: center;
   justify-content: space-between;
 }
 
-.branch-node-code {
-  overflow: visible;
-  position: relative;
-  z-index: 1;
-  border-radius: 0 0 8px 8px;
-}
-
-.branch-node-output {
-  background-color: #0e0e0e;
-  border-top: 1px solid #3e3e42;
-}
-
-.branch-node-handle {
-  width: 12px !important;
-  height: 12px !important;
-  background-color: #0e639c !important;
-  border: 2px solid #1e1e1e !important;
-  position: absolute !important;
-}
-
-.branch-node-handle.input {
-  top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.branch-node-handle.output {
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.pipeline-node {
-  width: 350px;
-  background-color: #1e1e1e;
-  border: 1px solid #3e3e42;
-  border-radius: 8px;
-  overflow: hidden;
-  font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 100;
-}
-
-.pipeline-node.selected {
-  background-color: #404040;
-  border: 2px solid #0e639c;
-  box-shadow: 0 0 0 1px #0e639c;
-  z-index: 1000;
-}
-
-.pipeline-node-header {
+.flow-node-header.standard {
   padding: 12px 16px;
-  background-color: #2d2d30;
   border-radius: 8px;
-  color: #cccccc;
-  display: flex;
 }
 
-.pipeline-node-title {
+.flow-node-title {
   font-size: 12px;
   color: #ffffff;
 }
 
-.pipeline-node-handle {
+/* Node Handles */
+.flow-node-handle {
   width: 12px !important;
   height: 12px !important;
-  background-color: #666 !important;
   border: 2px solid #1e1e1e !important;
   position: absolute !important;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
-.pipeline-step-node {
-  width: 350px;
-  background-color: #1e1e1e;
-  border: 1px solid #3e3e42;
-  border-radius: 8px;
-  overflow: visible;
-  font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 100;
-}
-
-.pipeline-step-node.selected {
-  background-color: #404040;
-  border: 2px solid #0e639c;
-  box-shadow: 0 0 0 1px #0e639c;
-  z-index: 1000;
-}
-
-/* Handles */
-.pipeline-step-handle {
-  width: 12px !important;
-  height: 12px !important;
+.flow-node-handle.default {
   background-color: #666 !important;
-  border: 2px solid #1e1e1e !important;
-  position: absolute !important;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
-.pipeline-step-handle.input {
+.flow-node-handle.primary {
+  background-color: #0e639c !important;
+}
+
+.flow-node-handle.input-top {
   top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.pipeline-step-handle.output {
+.flow-node-handle.output-bottom {
   bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-/* Header */
-.pipeline-step-header {
-  padding: 8px 12px;
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
-  border-radius: 8px 8px 0 0;
-  color: #cccccc;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.flow-node-handle.output-right {
+  right: -17px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px !important;
+  height: 10px !important;
 }
 
-.pipeline-step-branch-label {
+/* Editor Sections */
+.flow-node-code {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.flow-node-code.rounded-bottom {
+  border-radius: 0 0 8px 8px;
+}
+
+.flow-node-output {
+  background-color: #0e0e0e;
+  border-top: 1px solid #3e3e42;
+}
+
+.flow-node-output.rounded-bottom {
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+/* Branch Label */
+.flow-node-branch-label {
   font-size: 10px;
   background-color: #0e639c;
   color: white;
@@ -880,55 +835,20 @@
   border-radius: 4px;
 }
 
-/* Editors */
-.pipeline-step-code {
-  overflow: visible;
-  position: relative;
-  z-index: 1;
-}
-
-.pipeline-step-output {
-  background-color: #0e0e0e;
-  border-top: 1px solid #3e3e42;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
+/* Specific Node Styles */
+.pipeline-node {
+  font-size: 14px;
 }
 
 .result-node {
-  width: 350px;
-  background-color: #1e1e1e;
-  border: 1px solid #3e3e42;
   border-radius: 12px;
-  overflow: hidden;
-  font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  position: relative;
 }
 
-.result-node.selected {
-  background-color: #404040;
-  border: 2px solid #0e639c;
-  box-shadow: 0 0 0 1px #0e639c;
+.route-node {
+  font-size: 14px;
 }
 
-.result-node-handle-input {
-  width: 12px;
-  height: 12px;
-  background-color: #666;
-  border: 2px solid #1e1e1e;
-  top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  position: absolute;
-}
-
-.result-node-header {
-  padding: 12px 16px;
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3e3e42;
-  color: #cccccc;
-}
-
+/* Result Node Specific Styles */
 .result-node-branch-info {
   padding: 16px;
   background-color: #252526;
@@ -965,74 +885,4 @@
   color: white;
   padding: 2px 6px;
   border-radius: 3px;
-}
-
-.result-node-handle-branch {
-  width: 10px;
-  height: 10px;
-  background-color: #0e639c;
-  border: 2px solid #1e1e1e;
-  right: -17px;
-  top: 50%;
-  transform: translateY(-50%);
-  position: absolute;
-}
-
-.result-node-handle-output {
-  width: 12px;
-  height: 12px;
-  background-color: #666;
-  border: 2px solid #1e1e1e;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  position: absolute;
-}
-
-.route-node {
-  width: 350px;
-  background-color: #1e1e1e;
-  border: 1px solid #3e3e42;
-  border-radius: 8px;
-  overflow: hidden;
-  font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 100;
-}
-
-.route-node.selected {
-  background-color: #404040;
-  border: 2px solid #0e639c;
-  box-shadow: 0 0 0 1px #0e639c;
-  z-index: 1000;
-}
-
-/* Header */
-.route-node-header {
-  padding: 12px 16px;
-  background-color: #2d2d30;
-  border-radius: 8px;
-  color: #cccccc;
-  display: flex;
-}
-
-.route-node-title {
-  font-size: 12px;
-  color: #ffffff;
-}
-
-/* Output handle */
-.node-handle {
-  width: 12px;
-  height: 12px;
-  background-color: #666;
-  border: 2px solid #1e1e1e;
-  position: absolute;
-}
-
-.output-handle {
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
 }

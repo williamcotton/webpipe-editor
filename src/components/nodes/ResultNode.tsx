@@ -28,7 +28,7 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
 
   return (
     <div 
-      className={`result-node ${selected ? 'selected' : ''}`}
+      className={`flow-node-base result-node overflow-hidden ${selected ? 'selected' : ''}`}
       style={{ height: `${contentHeight}px` }}
     >
       {/* Input Handle */}
@@ -36,11 +36,11 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
         type="target"
         position={Position.Top}
         id="input"
-        className="result-node-handle-input"
+        className="flow-node-handle default input-top"
       />
 
       {/* Header */}
-      <div className="result-node-header">
+      <div className="flow-node-header standard">
         result
       </div>
 
@@ -67,7 +67,7 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
               type="source"
               position={Position.Right}
               id={`branch-${index}`}
-              className="result-node-handle-branch"
+              className="flow-node-handle primary output-right"
             />
           </div>
         ))}
@@ -79,7 +79,7 @@ export const ResultNode = memo<ResultNodeProps>(({ data, selected }) => {
           type="source"
           position={Position.Bottom}
           id="output"
-          className="result-node-handle-output"
+          className="flow-node-handle default output-bottom"
         />
       )}
     </div>

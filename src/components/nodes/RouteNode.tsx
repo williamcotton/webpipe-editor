@@ -14,10 +14,10 @@ export const RouteNode = memo<RouteNodeProps>(({ data, selected }) => {
   }
 
   return (
-    <div className={`route-node ${selected ? 'selected' : ''}`}>
+    <div className={`flow-node-base route-node overflow-hidden ${selected ? 'selected' : ''}`}>
       {/* Header */}
-      <div className="route-node-header">
-        <span className="route-node-title">
+      <div className="flow-node-header standard">
+        <span className="flow-node-title">
           {routeInfo.method} {routeInfo.path}
         </span>
       </div>
@@ -27,7 +27,7 @@ export const RouteNode = memo<RouteNodeProps>(({ data, selected }) => {
         type="source"
         position={Position.Bottom}
         id="output"
-        className="node-handle output-handle"
+        className="flow-node-handle default output-bottom"
       />
     </div>
   );
