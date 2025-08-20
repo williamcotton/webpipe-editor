@@ -12,6 +12,7 @@
     --text-muted: #888888;
     --text-disabled: #777777;
     --text-code: #d4d4d4;
+    --text-accent: #ffffff;
     --border-primary: #3e3e42;
     --border-secondary: #555555;
     --accent-primary: #0e639c;
@@ -23,6 +24,15 @@
     --info: #9cdcfe;
     --shadow: rgba(0, 0, 0, 0.3);
     --shadow-strong: rgba(0, 0, 0, 0.4);
+    --flow-edge-selected: #00ff88;
+    --flow-edge-selected-glow: #00ff8866;
+    --flow-edge-hover: #66ccff;
+    --flow-controls-bg: #2d2d30;
+    --flow-controls-border: #3e3e42;
+    --flow-controls-text: #cccccc;
+    --flow-controls-hover-bg: #404040;
+    --flow-controls-hover-text: #ffffff;
+    --flow-handle-connection: #0e639c;
 }
 
 [data-theme="light"] {
@@ -39,6 +49,7 @@
     --text-muted: #666666;
     --text-disabled: #999999;
     --text-code: #333333;
+    --text-accent: #ffffff;
     --border-primary: #d0d0d0;
     --border-secondary: #b0b0b0;
     --accent-primary: #0066cc;
@@ -50,6 +61,15 @@
     --info: #0288d1;
     --shadow: rgba(0, 0, 0, 0.1);
     --shadow-strong: rgba(0, 0, 0, 0.2);
+    --flow-edge-selected: #00cc66;
+    --flow-edge-selected-glow: #00cc6666;
+    --flow-edge-hover: #3399ff;
+    --flow-controls-bg: #f5f5f5;
+    --flow-controls-border: #d0d0d0;
+    --flow-controls-text: #333333;
+    --flow-controls-hover-bg: #e0e0e0;
+    --flow-controls-hover-text: #000000;
+    --flow-handle-connection: #0066cc;
 }
 
 .app {
@@ -208,7 +228,7 @@
 .get-button {
   background-color: var(--accent-primary);
   border: none;
-  color: var(--text-primary);
+  color: var(--text-accent);
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 3px;
@@ -335,6 +355,7 @@
 
 .mode-button.active {
   background-color: var(--accent-primary);
+  color: var(--text-accent);
 }
 
 .mode-button.disabled {
@@ -580,6 +601,7 @@
 
 .viewmode-button.active {
   background-color: var(--accent-primary);
+  color: var(--text-accent);
 }
 
 .viewmode-button:hover {
@@ -743,6 +765,7 @@
 
 .structure-item.selected {
   background-color: var(--accent-primary);
+  color: var(--text-accent);
 }
 
 .structure-item-label {
@@ -936,7 +959,7 @@
 .result-node-step-count {
   font-size: 9px;
   background-color: var(--accent-primary);
-  color: var(--text-primary);
+  color: var(--text-accent);
   padding: 2px 6px;
   border-radius: 3px;
 }
@@ -964,4 +987,45 @@
 
 .theme-toggle:active {
   background-color: var(--accent-active);
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--flow-edge-selected) !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 6px var(--flow-edge-selected-glow)) !important;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--flow-edge-hover) !important;
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__controls {
+  background-color: var(--flow-controls-bg) !important;
+  border: 1px solid var(--flow-controls-border) !important;
+}
+
+.react-flow__controls button {
+  background-color: var(--flow-controls-bg) !important;
+  border: 1px solid var(--flow-controls-border) !important;
+  color: var(--flow-controls-text) !important;
+  fill: var(--flow-controls-text) !important;
+}
+
+.react-flow__controls button:hover {
+  background-color: var(--flow-controls-hover-bg) !important;
+  color: var(--flow-controls-hover-text) !important;
+  fill: var(--flow-controls-hover-text) !important;
+}
+
+.react-flow__controls button svg {
+  fill: var(--flow-controls-text) !important;
+}
+
+.react-flow__controls button:hover svg {
+  fill: var(--flow-controls-hover-text) !important;
+}
+
+.react-flow__handle.connectionindicator {
+  background-color: var(--flow-handle-connection) !important;
 }

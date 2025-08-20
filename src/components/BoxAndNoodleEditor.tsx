@@ -255,42 +255,6 @@ export const BoxAndNoodleEditor: React.FC<BoxAndNoodleEditorProps> = ({
 
   return (
     <div className="box-and-noodle-editor">
-      {/* Custom CSS for selected edges and controls */}
-      <style>{`
-        .react-flow__edge.selected .react-flow__edge-path {
-          stroke: #00ff88 !important;
-          stroke-width: 3px !important;
-          filter: drop-shadow(0 0 6px #00ff8866) !important;
-        }
-        .react-flow__edge:hover .react-flow__edge-path {
-          stroke: #66ccff !important;
-          stroke-width: 2.5px !important;
-        }
-        .react-flow__controls {
-          background-color: #2d2d30 !important;
-          border: 1px solid #3e3e42 !important;
-        }
-        .react-flow__controls button {
-          background-color: #2d2d30 !important;
-          border: 1px solid #3e3e42 !important;
-          color: #cccccc !important;
-          fill: #cccccc !important;
-        }
-        .react-flow__controls button:hover {
-          background-color: #404040 !important;
-          color: #ffffff !important;
-          fill: #ffffff !important;
-        }
-        .react-flow__controls button svg {
-          fill: #cccccc !important;
-        }
-        .react-flow__controls button:hover svg {
-          fill: #ffffff !important;
-        }
-        .react-flow__handle.connectionindicator {
-          background-color: #0e639c !important;
-        }
-      `}</style>
       <ReactFlow
         nodes={nodes}
         edges={styledEdges}
